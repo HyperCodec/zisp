@@ -42,6 +42,21 @@ pub fn parse(code: *String, allocator: std.mem.Allocator) !std.ArrayList(model.T
             });
         }
 
+        if(code.charAt(0).?[0] == '"') {
+            // match string literal
+            
+            var token = try String.init_with_contents(allocator, code.charAt(0).?);
+            try code.remove(0);
+
+            defer token.deinit();
+
+            while(code.charAt(0).?[0] != '"') {
+                const char = code.charAt(0).?;
+                try code.remove(0);
+                try token.concat(char);
+            }
+        }
+
         if(code.charAt(0).?[0] == '(') {
             // match context
 

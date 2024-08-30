@@ -11,14 +11,26 @@ pub const Atom = union(enum) {
     str: []const u8,
 };
 
-pub const Function = union(enum) {
+pub const FunctionLiteral = union(enum) {
     internal: *const fn(allocator: std.mem.Allocator, args: []const Atom) Error!?Atom,
-    defined: TokenTree,
+    defined: std.ArrayList(TokenTree),
 };
+
+pub fn deinit_function_literal(literal: *FunctionLiteral) void {
+    switch(literal.*) {
+        .defined => |defined| defined.deinit(),
+    }
+
+    literal.* = undefined;
+}
 
 pub const Error = error {
     TypeMismatch,
     OperationNotSupported,
+    InvalidArgCount,
+    IdentDoesNotExist,
+    CannotCallValue,
+    InvalidType,
 };
 
 pub fn add(allocator: std.mem.Allocator, a: Atom, b: Atom) !Atom {
