@@ -1,32 +1,31 @@
 const std = @import("std");
 const model = @import("model.zig");
 const stringops = @import("stringops.zig");
+const String = @import("string").String;
 
 pub const Error = error {
     UnclosedDelimiter,
 };
 
-pub fn parse(code: []const u8, allocator: std.mem.Allocator) !std.ArrayList(model.TokenTree) {
+pub fn parse(code: *String, allocator: std.mem.Allocator) !std.ArrayList(model.TokenTree) {
     var tree = std.ArrayList(model.TokenTree).init(allocator);
 
-    var currentCode: []u8 = undefined;
-    std.mem.copyForwards(u8, currentCode[0..], code);
-
-    while(currentCode.len != 0) {
+    while(!code.isEmpty()) {
         // match the current tokens repeatedly until there is nothing left to match.
         
-        if(stringops.c_isnumeric(currentCode[0])) {
+        if(stringops.c_isnumeric(code.charAt(0).?[0])) {
             // match integer literal
 
-            var token = std.ArrayList(u8).init(allocator);
+            var token = String.init(allocator);
+            defer token.deinit();
 
-            while(currentCode.len != 0 and stringops.c_isnumeric(currentCode[0])) {
-                try token.append(currentCode[0]);
-                currentCode = currentCode[1..];
+            while(!code.isEmpty() and stringops.c_isnumeric(code.charAt(0).?[0])) {
+                const char = code.charAt(0).?;
+                try code.remove(0);
+                try token.concat(char);
             }
 
-            const tokenValue = try std.fmt.parseInt(i32, token.items, 10);
-            token.deinit(); // want to deinit early instead of defer because recursion.
+            const tokenValue = try std.fmt.parseInt(i32, token.str(), 10);
 
             try tree.append(model.TokenTree {
                 .constant = model.Atom {
@@ -35,49 +34,51 @@ pub fn parse(code: []const u8, allocator: std.mem.Allocator) !std.ArrayList(mode
             });
         }
 
-        if(currentCode[0] == '(') {
+        if(code.charAt(0).?[0] == '(') {
             // match context
 
-            var i = currentCode.len-1;
+            var i = code.len()-1;
             
             while(true) {
                 if (i == 0) {
                     return error.UnclosedDelimiter;
                 }
 
-                if (currentCode[i] == ')') {
+                if (code.charAt(i).?[0] == ')') {
                     break;
                 }
 
                 i -= 1;
             }
 
-            const context = currentCode[1..i-1];
-            const tree2 = try parse(context, allocator);
+            const context = code.str()[1..i-1];
+            var context2 = try String.init_with_contents(allocator, context);
+            defer context2.deinit();
 
-            currentCode = currentCode[i+1..];
+            const tree2 = try parse(&context2, allocator);
+            try code.removeRange(1, i-1);
 
             try tree.append(model.TokenTree {
                 .context = tree2,
             });
         }
 
-        if(!stringops.c_iswhitespace(currentCode[0])) {
+        if(!stringops.c_iswhitespace(code.charAt(0).?[0])) {
             // match ident
 
-            var token = std.ArrayList(u8).init(allocator);
+            var token = String.init(allocator);
+            defer token.deinit();
 
-            while(currentCode.len != 0 and !stringops.c_iswhitespace(currentCode[0])) {
-                try token.append(currentCode[0]);
-                currentCode = currentCode[1..];
+            while(code.len() != 0 and !stringops.c_iswhitespace(code.charAt(0).?[0])) {
+                try token.concat(code.charAt(0).?);
+                try code.remove(0);
             }
 
             try tree.append(model.TokenTree {
                 .constant = model.Atom {
-                    .str = token.items,
+                    .str = token.str(),
                 },
             });
-            token.deinit();
         }
     }
 
