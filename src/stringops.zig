@@ -25,3 +25,14 @@ pub fn s_iswhitespace(str: []u8) bool {
 
     return true;
 }
+
+const testing = @import("std").testing;
+test "is numeric" {
+    try testing.expect(c_isnumeric(' ') == false);
+    try testing.expect(c_isnumeric('4') == true);
+}
+
+test "is whitespace" {
+    try testing.expect(c_iswhitespace(' ') == true);
+    try testing.expect(c_iswhitespace('b') == false);
+}

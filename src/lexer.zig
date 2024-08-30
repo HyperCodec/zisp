@@ -12,19 +12,27 @@ pub fn parse(code: *String, allocator: std.mem.Allocator) !std.ArrayList(model.T
 
     while(!code.isEmpty()) {
         // match the current tokens repeatedly until there is nothing left to match.
+
+        if(stringops.c_iswhitespace(code.charAt(0).?[0])) {
+            try code.remove(0);
+            continue;
+        }
         
         if(stringops.c_isnumeric(code.charAt(0).?[0])) {
             // match integer literal
 
-            var token = String.init(allocator);
+            var token = try String.init_with_contents(allocator, code.charAt(0).?);
             defer token.deinit();
 
+            try code.remove(0);
+
             while(!code.isEmpty() and stringops.c_isnumeric(code.charAt(0).?[0])) {
+                // for some reason, even though the condition is false, the while loop still goes an extra iteration.
+
                 const char = code.charAt(0).?;
                 try code.remove(0);
                 try token.concat(char);
             }
-
             const tokenValue = try std.fmt.parseInt(i32, token.str(), 10);
 
             try tree.append(model.TokenTree {
@@ -51,7 +59,7 @@ pub fn parse(code: *String, allocator: std.mem.Allocator) !std.ArrayList(model.T
                 i -= 1;
             }
 
-            const context = code.str()[1..i-1];
+            const context = code.str()[1..i];
             var context2 = try String.init_with_contents(allocator, context);
             defer context2.deinit();
 
