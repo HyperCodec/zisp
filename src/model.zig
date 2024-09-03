@@ -20,6 +20,7 @@ pub const FunctionLiteral = union(enum) {
 pub fn deinit_function_literal(literal: *FunctionLiteral) void {
     switch(literal.*) {
         .defined => |defined| defined.deinit(),
+        .internal => {},
     }
 
     literal.* = undefined;
