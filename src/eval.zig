@@ -37,7 +37,7 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
             return runtime.run_function(allocator, ident.str(), args.items);
         },
         .constant => return error.CannotCallValue,
-        .context => return error.CannotCallValue,
+        .context => |context| try evaluate(allocator, context, runtime),
     }
 }
 
