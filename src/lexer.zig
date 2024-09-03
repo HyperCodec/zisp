@@ -18,7 +18,7 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
         //std.debug.print("depth: {}, code: {s}\n", .{depth, code.str()});
 
-        if(stringops.c_iswhitespace(code.charAt(0).?[0]) or code.charAt(0).?[0] == 170) {
+        if(stringops.c_iswhitespace(code.charAt(0).?[0])) {
             try code.remove(0);
             continue;
         }

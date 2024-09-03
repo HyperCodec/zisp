@@ -13,7 +13,7 @@ pub fn s_isnumeric(str: []u8) bool {
 }
 
 pub fn c_iswhitespace(char: u8) bool {
-    return char == ' ' or char == '\n' or char == '\t' or char == '\r';
+    return char == ' ' or char == '\n' or char == '\t' or char == '\r' or char == 170;
 }
 
 pub fn s_iswhitespace(str: []u8) bool {
