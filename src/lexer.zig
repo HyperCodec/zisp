@@ -3,7 +3,7 @@ const model = @import("model.zig");
 const stringops = @import("stringops.zig");
 const String = @import("string").String;
 
-pub const Error = error {
+pub const Error = error{
     UnclosedDelimiter,
 };
 
@@ -13,17 +13,17 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
     var tree = std.ArrayList(model.TokenTree).init(allocator);
 
-    while(!code.isEmpty()) {
+    while (!code.isEmpty()) {
         // match the current tokens repeatedly until there is nothing left to match.
 
         //std.debug.print("depth: {}, code: {s}\n", .{depth, code.str()});
 
-        if(stringops.c_iswhitespace(code.charAt(0).?[0])) {
+        if (stringops.c_iswhitespace(code.charAt(0).?[0])) {
             try code.remove(0);
             continue;
         }
-        
-        if(stringops.c_isnumeric(code.charAt(0).?[0])) {
+
+        if (stringops.c_isnumeric(code.charAt(0).?[0])) {
             // match integer literal
 
             var token = try String.init_with_contents(allocator, code.charAt(0).?);
@@ -31,58 +31,52 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
             try code.remove(0);
 
-            while(!code.isEmpty() and stringops.c_isnumeric(code.charAt(0).?[0])) {
+            while (!code.isEmpty() and stringops.c_isnumeric(code.charAt(0).?[0])) {
                 // for some reason, even though the condition is false, the while loop still goes an extra iteration.
 
                 const char = code.charAt(0).?;
                 try code.remove(0);
                 try token.concat(char);
             }
-            
+
             const tokenValue = try std.fmt.parseInt(i32, token.str(), 10);
 
-            try tree.append(model.TokenTree {
-                .constant = model.Atom {
-                    .int = tokenValue
-                }
-            });
+            try tree.append(model.TokenTree{ .constant = model.Atom{ .int = tokenValue } });
 
             continue;
         }
 
-        if(code.charAt(0).?[0] == '"') {
+        if (code.charAt(0).?[0] == '"') {
             // match string literal
-            
+
             var token = try String.init_with_contents(allocator, code.charAt(0).?);
             try code.remove(0);
 
             //defer token.deinit();
 
-            while(code.charAt(0).?[0] != '"') {
+            while (code.charAt(0).?[0] != '"') {
                 const char = code.charAt(0).?;
                 try code.remove(0);
                 try token.concat(char);
 
-                if(code.isEmpty()) {
+                if (code.isEmpty()) {
                     return error.UnclosedDelimiter;
                 }
             }
 
-            try tree.append(model.TokenTree {
-                .constant = model.Atom {
-                    .str = token,
-                }
-            });
+            try tree.append(model.TokenTree{ .constant = model.Atom{
+                .str = token,
+            } });
 
             continue;
         }
 
-        if(code.charAt(0).?[0] == '(') {
+        if (code.charAt(0).?[0] == '(') {
             // match context
 
-            var i = code.len()-1;
-            
-            while(true) {
+            var i = code.len() - 1;
+
+            while (true) {
                 if (i == 0) {
                     return error.UnclosedDelimiter;
                 }
@@ -97,26 +91,26 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             const context = code.str()[1..i];
 
             const tree2 = try parse(context, allocator);
-            try code.removeRange(0, i+1);
+            try code.removeRange(0, i + 1);
 
-            try tree.append(model.TokenTree {
+            try tree.append(model.TokenTree{
                 .context = tree2,
             });
 
             continue;
         }
 
-        if(!stringops.c_iswhitespace(code.charAt(0).?[0])) {
+        if (!stringops.c_iswhitespace(code.charAt(0).?[0])) {
             // match ident
 
             var token = String.init(allocator);
 
-            while(code.len() != 0 and !stringops.c_iswhitespace(code.charAt(0).?[0])) {
+            while (code.len() != 0 and !stringops.c_iswhitespace(code.charAt(0).?[0])) {
                 try token.concat(code.charAt(0).?);
                 try code.remove(0);
             }
 
-            try tree.append(model.TokenTree {
+            try tree.append(model.TokenTree{
                 // idk how i didnt catch this when i was trying to look for the error
                 .ident = token,
             });
@@ -127,11 +121,11 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 }
 
 pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Allocator, depth: u32) !void {
-    for(0..ast.items.len, ast.items) |_, tree| {
+    for (0..ast.items.len, ast.items) |_, tree| {
         var indentation = String.init(allocator);
         defer indentation.deinit();
 
-        for(0..depth) |_| {
+        for (0..depth) |_| {
             try indentation.concat("\t");
         }
 
@@ -139,12 +133,12 @@ pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Alloc
 
         try indentation.concat("\t");
 
-        switch(tree) {
-            .constant => |atom| switch(atom) {
-                .str => |str| std.debug.print("{s}Constant(\"{s}\")\n", .{indentation.str(), str.str()}),
-                .int => |int| std.debug.print("{s}Constant({})\n", .{indentation.str(), int}),
+        switch (tree) {
+            .constant => |atom| switch (atom) {
+                .str => |str| std.debug.print("{s}Constant(\"{s}\")\n", .{ indentation.str(), str.str() }),
+                .int => |int| std.debug.print("{s}Constant({})\n", .{ indentation.str(), int }),
             },
-            .ident => |ident| std.debug.print("{s}Ident({s})\n", .{indentation.str(), ident.str()}),
+            .ident => |ident| std.debug.print("{s}Ident({s})\n", .{ indentation.str(), ident.str() }),
             .context => |context| try display_ast(context, allocator, depth + 1),
         }
     }

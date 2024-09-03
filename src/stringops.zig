@@ -3,8 +3,8 @@ pub fn c_isnumeric(char: u8) bool {
 }
 
 pub fn s_isnumeric(str: []u8) bool {
-    for(str) |c| {
-        if(!c_isnumeric(c)) {
+    for (str) |c| {
+        if (!c_isnumeric(c)) {
             return false;
         }
     }
@@ -17,8 +17,8 @@ pub fn c_iswhitespace(char: u8) bool {
 }
 
 pub fn s_iswhitespace(str: []u8) bool {
-    for(str) |c| {
-        if(!c_iswhitespace(c)) {
+    for (str) |c| {
+        if (!c_iswhitespace(c)) {
             return false;
         }
     }

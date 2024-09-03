@@ -13,12 +13,12 @@ pub const Atom = union(enum) {
 };
 
 pub const FunctionLiteral = union(enum) {
-    internal: *const fn(allocator: std.mem.Allocator, args: []const Atom) anyerror!?Atom,
+    internal: *const fn (allocator: std.mem.Allocator, args: []const Atom) anyerror!?Atom,
     defined: std.ArrayList(TokenTree),
 };
 
 pub fn deinit_function_literal(literal: *FunctionLiteral) void {
-    switch(literal.*) {
+    switch (literal.*) {
         .defined => |defined| defined.deinit(),
         .internal => {},
     }
@@ -26,7 +26,7 @@ pub fn deinit_function_literal(literal: *FunctionLiteral) void {
     literal.* = undefined;
 }
 
-pub const Error = error {
+pub const Error = error{
     TypeMismatch,
     OperationNotSupported,
     InvalidArgCount,
@@ -36,12 +36,12 @@ pub const Error = error {
 };
 
 pub fn add(allocator: std.mem.Allocator, a: Atom, b: Atom) !Atom {
-    return switch(a) {
-        .int => switch(b) {
-            .int => Atom { .int = a.int + b.int },
+    return switch (a) {
+        .int => switch (b) {
+            .int => Atom{ .int = a.int + b.int },
             .str => error.TypeMismatch,
         },
-        .str => switch(b) {
+        .str => switch (b) {
             .int => {
                 // TODO concat int onto string
                 return a;
@@ -50,16 +50,16 @@ pub fn add(allocator: std.mem.Allocator, a: Atom, b: Atom) !Atom {
                 var str = try String.init_with_contents(allocator, a.str.str());
                 try str.concat(b.str.str());
 
-                return Atom { .str = str };
-            }
-        }
+                return Atom{ .str = str };
+            },
+        },
     };
 }
 
 pub fn sub(a: Atom, b: Atom) Error!Atom {
-    return switch(a) {
-        .int => switch(b) {
-            .int => Atom { .int = a.int - b.int },
+    return switch (a) {
+        .int => switch (b) {
+            .int => Atom{ .int = a.int - b.int },
             .str => error.OperationNotSupported,
         },
         .str => error.OperationNotSupported,
@@ -67,9 +67,9 @@ pub fn sub(a: Atom, b: Atom) Error!Atom {
 }
 
 pub fn mult(a: Atom, b: Atom) Error!Atom {
-    return switch(a) {
-        .int => switch(b) {
-            .int => Atom { .int = a.int * b.int },
+    return switch (a) {
+        .int => switch (b) {
+            .int => Atom{ .int = a.int * b.int },
             .str => error.OperationNotSupported,
         },
         .str => error.OperationNotSupported,
@@ -78,8 +78,8 @@ pub fn mult(a: Atom, b: Atom) Error!Atom {
 
 pub fn div(a: Atom, b: Atom) Error!Atom {
     return switch (a) {
-        .int => switch(b) {
-            .int => Atom { .int = @divExact(a.int, b.int) },
+        .int => switch (b) {
+            .int => Atom{ .int = @divExact(a.int, b.int) },
             .str => error.OperationNotSupported,
         },
         .str => error.OperationNotSupported,

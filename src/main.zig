@@ -12,8 +12,8 @@ var args = struct {
 pub fn main() !void {
     var r = try cli.AppRunner.init(std.heap.page_allocator);
 
-    const app = cli.App {
-        .command = cli.Command {
+    const app = cli.App{
+        .command = cli.Command{
             .name = "zisp",
             .options = &.{
                 .{
@@ -28,8 +28,8 @@ pub fn main() !void {
                     .value_ref = r.mkRef(&args.show_ast),
                 },
             },
-            .target = cli.CommandTarget {
-                .action = cli.CommandAction { .exec = run_file },
+            .target = cli.CommandTarget{
+                .action = cli.CommandAction{ .exec = run_file },
             },
         },
         .author = "HyperCodec",
@@ -57,7 +57,7 @@ fn run_file() !void {
 fn zisp_const_test() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
-    
+
     const allocator = arena.allocator();
 
     try run_code(allocator, "println (+ (* 5 3) 2)");
@@ -67,7 +67,7 @@ fn run_code(allocator: std.mem.Allocator, code: []const u8) !void {
     const ast = try lexer.parse(code, allocator);
     // defer lexer.deinit_ast(&ast);
 
-    if(args.show_ast) {
+    if (args.show_ast) {
         try lexer.display_ast(ast, allocator, 0);
     }
 
