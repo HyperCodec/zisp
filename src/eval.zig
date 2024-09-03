@@ -152,7 +152,7 @@ pub const GlobalValue = union(enum) {
     function: model.FunctionLiteral,
 };
 
-pub fn internal_add(allocator: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
+pub fn internal_add(allocator: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
     if (args.len != 2) {
         return error.InvalidArgCount;
     }
@@ -160,7 +160,7 @@ pub fn internal_add(allocator: std.mem.Allocator, args: []const model.Atom) mode
     return try model.add(allocator, args[0], args[1]);
 }
 
-pub fn internal_sub(_: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
+pub fn internal_sub(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
     if(args.len != 2) {
         return error.InvalidArgCount;
     }
@@ -168,7 +168,7 @@ pub fn internal_sub(_: std.mem.Allocator, args: []const model.Atom) model.Error!
     return try model.sub(args[0], args[1]);
 }
 
-pub fn internal_mult(_: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
+pub fn internal_mult(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
     if(args.len != 2) {
         return error.InvalidArgCount;
     }
@@ -176,7 +176,7 @@ pub fn internal_mult(_: std.mem.Allocator, args: []const model.Atom) model.Error
     return try model.mult(args[0], args[1]);
 }
 
-pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
+pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
     if(args.len != 2) {
         return error.InvalidArgCount;
     }
@@ -184,7 +184,7 @@ pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom) model.Error!
     return try model.div(args[0], args[1]);
 }
 
-pub fn internal_print(_: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
+pub fn internal_print(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
     if(args.len != 1) {
         return error.InvalidArgCount;
     }
@@ -197,7 +197,7 @@ pub fn internal_print(_: std.mem.Allocator, args: []const model.Atom) model.Erro
     return null;
 }
 
-pub fn internal_println(_: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
+pub fn internal_println(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
     if(args.len != 1) {
         return error.InvalidArgCount;
     }

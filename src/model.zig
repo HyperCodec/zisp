@@ -13,7 +13,7 @@ pub const Atom = union(enum) {
 };
 
 pub const FunctionLiteral = union(enum) {
-    internal: *const fn(allocator: std.mem.Allocator, args: []const Atom) Error!?Atom,
+    internal: *const fn(allocator: std.mem.Allocator, args: []const Atom) anyerror!?Atom,
     defined: std.ArrayList(TokenTree),
 };
 
@@ -46,8 +46,8 @@ pub fn add(allocator: std.mem.Allocator, a: Atom, b: Atom) !Atom {
                 return a;
             },
             .str => {
-                var str = String.init_with_contents(allocator, a.str.str()) catch |err| std.debug.panic("error: {}", .{err});
-                str.concat(b.str.str()) catch |err| std.debug.panic("error: {}", .{err});
+                var str = try String.init_with_contents(allocator, a.str.str());
+                try str.concat(b.str.str());
 
                 return Atom { .str = str };
             }
