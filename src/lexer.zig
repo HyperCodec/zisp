@@ -8,7 +8,9 @@ pub const Error = error {
 };
 
 // TODO maybe accept []const u8 and convert instead of *String so it doesn't mutate outer context.
-pub fn parse(code: *String, allocator: std.mem.Allocator) !std.ArrayList(model.TokenTree) {
+pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(model.TokenTree) {
+    var code = try String.init_with_contents(allocator, haystack);
+
     var tree = std.ArrayList(model.TokenTree).init(allocator);
 
     while(!code.isEmpty()) {
@@ -93,10 +95,8 @@ pub fn parse(code: *String, allocator: std.mem.Allocator) !std.ArrayList(model.T
             }
 
             const context = code.str()[1..i];
-            var context2 = try String.init_with_contents(allocator, context);
-            defer context2.deinit();
 
-            const tree2 = try parse(&context2, allocator);
+            const tree2 = try parse(context, allocator);
             try code.removeRange(1, i-1);
 
             try tree.append(model.TokenTree {

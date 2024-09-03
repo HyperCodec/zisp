@@ -17,10 +17,7 @@ fn zisp_const_test() !void {
 }
 
 fn run_code(allocator: std.mem.Allocator, code: []const u8) !void {
-    var code2 = try String.init_with_contents(allocator, code);
-    defer code2.deinit();
-
-    const tree = try lexer.parse(&code2, allocator);
+    const tree = try lexer.parse(code, allocator);
     // defer lexer.deinit_ast(&tree);
 
     var runtime = eval.Runtime.init(allocator);
