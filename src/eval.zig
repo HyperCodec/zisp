@@ -1,14 +1,17 @@
 const std = @import("std");
 const model = @import("model.zig");
+const String = @import("string").String;
 
 pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree), runtime: *Runtime) !?model.Atom {
     if(ast.items.len == 1) {
         return switch(ast.items[0]) {
             .constant => |constant| constant,
             .context => |context| evaluate(allocator, context, runtime),
-            .ident => |ident| runtime.run_function(allocator, ident, &[_]model.Atom{}),
+            .ident => |ident| runtime.run_function(allocator, ident.str(), &[_]model.Atom{}),
         };
     }
+
+    std.debug.print("{any}\n", .{ast.items});
 
     switch(ast.items[0]) {
         .ident => |ident| {
@@ -22,7 +25,7 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
                     
                     // TODO evaluation could be null, need an actual error handling
                     .context => |context| try args.append((try evaluate(allocator, context, runtime)).?),
-                    .ident => |ident2| if(runtime.env.globals.get(ident2)) |global| {
+                    .ident => |ident2| if(runtime.env.globals.get(ident2.str())) |global| {
                         switch(global) {
                             .atom => |atom| try args.append(atom),
                             .function => return error.InvalidType,
@@ -33,7 +36,7 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
                 }
             }
 
-            return runtime.run_function(allocator, ident, args.items);
+            return runtime.run_function(allocator, ident.str(), args.items);
         },
         .constant => return error.CannotCallValue,
         .context => return error.CannotCallValue,
@@ -73,6 +76,10 @@ pub const Runtime = struct {
                 .internal => |internal| internal(allocator, args),
             }
         };
+    }
+
+    pub fn setup(self: *Self) !void {
+        try self.env.add_default_globals();
     }
 };
 
@@ -152,7 +159,7 @@ pub fn internal_add(allocator: std.mem.Allocator, args: []const model.Atom) mode
         return error.InvalidArgCount;
     }
 
-    return model.add(allocator, args[0], args[1]);
+    return try model.add(allocator, args[0], args[1]);
 }
 
 pub fn internal_sub(_: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
@@ -160,7 +167,7 @@ pub fn internal_sub(_: std.mem.Allocator, args: []const model.Atom) model.Error!
         return error.InvalidArgCount;
     }
 
-    return model.sub(args[0], args[1]);
+    return try model.sub(args[0], args[1]);
 }
 
 pub fn internal_mult(_: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
@@ -168,7 +175,7 @@ pub fn internal_mult(_: std.mem.Allocator, args: []const model.Atom) model.Error
         return error.InvalidArgCount;
     }
 
-    return model.mult(args[0], args[1]);
+    return try model.mult(args[0], args[1]);
 }
 
 pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
@@ -176,7 +183,7 @@ pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom) model.Error!
         return error.InvalidArgCount;
     }
 
-    return model.div(args[0], args[1]);
+    return try model.div(args[0], args[1]);
 }
 
 pub fn internal_print(_: std.mem.Allocator, args: []const model.Atom) model.Error!?model.Atom {
@@ -186,7 +193,7 @@ pub fn internal_print(_: std.mem.Allocator, args: []const model.Atom) model.Erro
 
     switch (args[0]) {
         .int => |int| std.debug.print("{}", .{int}),
-        .str => |str| std.debug.print("{s}", .{str}),
+        .str => |str| std.debug.print("{s}", .{str.str()}),
     }
 
     return null;
@@ -199,7 +206,7 @@ pub fn internal_println(_: std.mem.Allocator, args: []const model.Atom) model.Er
 
     switch(args[0]) {
         .int => |int| std.debug.print("{}\n", .{int}),
-        .str => |str| std.debug.print("{s}\n", .{str}),
+        .str => |str| std.debug.print("{s}\n", .{str.str()}),
     }
 
     return null;

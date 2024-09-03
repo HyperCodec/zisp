@@ -9,9 +9,11 @@ pub fn main() !void {
 
 fn zisp_const_test() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    
     const allocator = arena.allocator();
 
-    try run_code(allocator, "(print (+ 1 2))");
+    try run_code(allocator, "print (+ 1 2)");
 }
 
 fn run_code(allocator: std.mem.Allocator, code: []const u8) !void {
@@ -19,9 +21,12 @@ fn run_code(allocator: std.mem.Allocator, code: []const u8) !void {
     defer code2.deinit();
 
     const tree = try lexer.parse(&code2, allocator);
+    // defer lexer.deinit_ast(&tree);
 
     var runtime = eval.Runtime.init(allocator);
     defer runtime.deinit();
+
+    try runtime.setup();
 
     _ = try eval.evaluate(allocator, tree, &runtime);
 }
