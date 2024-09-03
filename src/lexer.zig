@@ -16,7 +16,7 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
     while(!code.isEmpty()) {
         // match the current tokens repeatedly until there is nothing left to match.
 
-        std.debug.print("code: {s}\n", .{code.str()});
+        //std.debug.print("depth: {}, code: {s}\n", .{depth, code.str()});
 
         if(stringops.c_iswhitespace(code.charAt(0).?[0])) {
             try code.remove(0);
@@ -97,7 +97,7 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             const context = code.str()[1..i];
 
             const tree2 = try parse(context, allocator);
-            try code.removeRange(1, i-1);
+            try code.removeRange(0, i+1);
 
             try tree.append(model.TokenTree {
                 .context = tree2,
@@ -115,8 +115,6 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
                 try token.concat(code.charAt(0).?);
                 try code.remove(0);
             }
-
-            std.debug.print("ident is \"{s}\"\n", .{token.str()});
 
             try tree.append(model.TokenTree {
                 // idk how i didnt catch this when i was trying to look for the error

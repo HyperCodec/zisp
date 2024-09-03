@@ -11,8 +11,6 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
         };
     }
 
-    std.debug.print("{any}\n", .{ast.items});
-
     switch(ast.items[0]) {
         .ident => |ident| {
             // this ident has to be a function.

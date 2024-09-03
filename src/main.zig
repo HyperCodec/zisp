@@ -13,7 +13,7 @@ fn zisp_const_test() !void {
     
     const allocator = arena.allocator();
 
-    try run_code(allocator, "print (+ 1 2)");
+    try run_code(allocator, "println (+ 1 2)");
 }
 
 fn run_code(allocator: std.mem.Allocator, code: []const u8) !void {
