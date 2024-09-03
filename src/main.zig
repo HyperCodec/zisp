@@ -6,6 +6,7 @@ const cli = @import("cli");
 
 var args = struct {
     path: []const u8 = undefined,
+    show_ast: bool = false,
 }{};
 
 pub fn main() !void {
@@ -20,7 +21,12 @@ pub fn main() !void {
                     .help = "The path to the zisp file",
                     .value_ref = r.mkRef(&args.path),
                     .required = true,
-                }
+                },
+                .{
+                    .long_name = "show-ast",
+                    .help = "Whether to display the ast before running",
+                    .value_ref = r.mkRef(&args.show_ast),
+                },
             },
             .target = cli.CommandTarget {
                 .action = cli.CommandAction { .exec = run_file },
@@ -58,13 +64,17 @@ fn zisp_const_test() !void {
 }
 
 fn run_code(allocator: std.mem.Allocator, code: []const u8) !void {
-    const tree = try lexer.parse(code, allocator);
-    // defer lexer.deinit_ast(&tree);
+    const ast = try lexer.parse(code, allocator);
+    // defer lexer.deinit_ast(&ast);
+
+    if(args.show_ast) {
+        try lexer.display_ast(ast, allocator, 0);
+    }
 
     var runtime = eval.Runtime.init(allocator);
     defer runtime.deinit();
 
     try runtime.setup();
 
-    _ = try eval.evaluate(allocator, tree, &runtime);
+    _ = try eval.evaluate(allocator, ast, &runtime);
 }

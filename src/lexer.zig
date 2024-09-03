@@ -18,7 +18,7 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
         //std.debug.print("depth: {}, code: {s}\n", .{depth, code.str()});
 
-        if(stringops.c_iswhitespace(code.charAt(0).?[0])) {
+        if(stringops.c_iswhitespace(code.charAt(0).?[0]) or code.charAt(0).?[0] == 170) {
             try code.remove(0);
             continue;
         }
@@ -124,6 +124,30 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
     }
 
     return tree;
+}
+
+pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Allocator, depth: u32) !void {
+    for(0..ast.items.len, ast.items) |_, tree| {
+        var indentation = String.init(allocator);
+        defer indentation.deinit();
+
+        for(0..depth) |_| {
+            try indentation.concat("\t");
+        }
+
+        std.debug.print("{s}tree start\n", .{indentation.str()});
+
+        try indentation.concat("\t");
+
+        switch(tree) {
+            .constant => |atom| switch(atom) {
+                .str => |str| std.debug.print("{s}Constant(\"{s}\")\n", .{indentation.str(), str.str()}),
+                .int => |int| std.debug.print("{s}Constant({})\n", .{indentation.str(), int}),
+            },
+            .ident => |ident| std.debug.print("{s}Ident({s})\n", .{indentation.str(), ident.str()}),
+            .context => |context| try display_ast(context, allocator, depth + 1),
+        }
+    }
 }
 
 // pub fn deinit_ast(ast: *std.ArrayList(model.TokenTree)) void {
