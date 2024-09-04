@@ -42,7 +42,7 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
 
             for(ast.items[1..]) |tree| {
                 switch (tree) {
-                    .context => _ = try evaluate(allocator, ast, runtime),
+                    .context => |context2| _ = try evaluate(allocator, context2, runtime),
                     .constant => return error.CannotCallValue,
                     .ident => |ident| _ = try runtime.run_function(allocator, ident.str(), &[_]model.Atom{}),
                 }

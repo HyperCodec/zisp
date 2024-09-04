@@ -76,20 +76,30 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
         if (code.charAt(0).?[0] == '(') {
             // match context
 
-            std.debug.print("context: {s}\n", .{code.str()});
-
-            var i = code.len() - 1;
+            var i: usize = 1;
+            var openParenthCount: usize = 0;
 
             while (true) {
-                if (i == 0) {
+                if (i == code.len()) {
                     return error.UnclosedDelimiter;
                 }
 
-                if (code.charAt(i).?[0] == ')') {
-                    break;
+                const char = code.charAt(i).?[0];
+
+                if(char == 170) {
+                    return error.UnclosedDelimiter;
                 }
 
-                i -= 1;
+                if(char == '(') {
+                    openParenthCount += 1;
+                } else if (char == ')') {
+                    if(openParenthCount == 0) {
+                        break;
+                    }
+                    openParenthCount -= 1;
+                }
+
+                i += 1;
             }
 
             const context = code.str()[1..i];
