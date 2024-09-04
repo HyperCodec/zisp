@@ -18,6 +18,20 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
         //std.debug.print("depth: {}, code: {s}\n", .{depth, code.str()});
 
+        if(code.startsWith("//")) {
+            // remove commented line
+            const newline = code.find("\n");
+
+            const end = if(newline) |index|
+                index
+            else
+                code.len()-1;
+
+            try code.removeRange(0, end);
+
+            continue;
+        }
+
         if (stringops.c_iswhitespace(code.charAt(0).?[0])) {
             try code.remove(0);
             continue;
