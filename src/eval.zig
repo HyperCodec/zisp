@@ -11,7 +11,7 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
         };
     }
 
-    switch (ast.items[0]) {
+    return switch (ast.items[0]) {
         .ident => |ident| {
             // this ident has to be a function.
             var args = std.ArrayList(model.Atom).init(allocator);
@@ -37,8 +37,20 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
             return runtime.run_function(allocator, ident.str(), args.items);
         },
         .constant => return error.CannotCallValue,
-        .context => |context| try evaluate(allocator, context, runtime),
-    }
+        .context => |context| {
+            _ = try evaluate(allocator, context, runtime);
+
+            for(ast.items[1..]) |tree| {
+                switch (tree) {
+                    .context => _ = try evaluate(allocator, ast, runtime),
+                    .constant => return error.CannotCallValue,
+                    .ident => |ident| _ = try runtime.run_function(allocator, ident.str(), &[_]model.Atom{}),
+                }
+            }
+
+            return null;
+        },
+    };
 }
 
 pub const Runtime = struct {

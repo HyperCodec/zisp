@@ -49,20 +49,22 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
         if (code.charAt(0).?[0] == '"') {
             // match string literal
 
-            var token = try String.init_with_contents(allocator, code.charAt(0).?);
+            var token = String.init(allocator);
             try code.remove(0);
 
             //defer token.deinit();
 
             while (code.charAt(0).?[0] != '"') {
                 const char = code.charAt(0).?;
-                try code.remove(0);
                 try token.concat(char);
-
+                try code.remove(0);
+                
                 if (code.isEmpty()) {
                     return error.UnclosedDelimiter;
                 }
             }
+
+            try code.remove(0);
 
             try tree.append(model.TokenTree{ .constant = model.Atom{
                 .str = token,
@@ -73,6 +75,8 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
         if (code.charAt(0).?[0] == '(') {
             // match context
+
+            std.debug.print("context: {s}\n", .{code.str()});
 
             var i = code.len() - 1;
 
