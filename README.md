@@ -1,5 +1,5 @@
 # zisp
-a simple lisp implemented in zig
+A simple lisp implemented in zig. (my first zig project :D)
 
 ## CLI
 `zisp --path <PATH>`
@@ -13,6 +13,10 @@ a simple lisp implemented in zig
 ### Calling a function
 You can call a function by running `functionName arg1 arg2 ...`
 
+### Primitives
+`int` - a 32-bit signed integer. literals defined by just typing the actual number characters.
+`str` - a variable-length string. literals defined using quotation marks.
+
 ### Contexts
 A context is used to separate a call from other calls. For instance:
 ```
@@ -22,7 +26,7 @@ println (+ 1 2)
 The output of `+ 1 2` is passed to `println` as a single argument.
 
 
-Contexts are also used in separating multiple sequential calls as well. Take this example:
+Contexts are also used in separating multiple sequential calls as well. Take this for example:
 ```
 (println "foo")
 (println "bar")
