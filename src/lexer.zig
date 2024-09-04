@@ -19,14 +19,14 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
         //std.debug.print("depth: {}, code: {s}\n", .{depth, code.str()});
 
-        if(code.startsWith("//")) {
+        if (code.startsWith("//")) {
             // remove commented line
             const newline = code.find("\n");
 
-            const end = if(newline) |index|
+            const end = if (newline) |index|
                 index
             else
-                code.len()-1;
+                code.len() - 1;
 
             try code.removeRange(0, end);
 
@@ -40,6 +40,7 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
         if (stringops.c_isnumeric(code.charAt(0).?[0])) {
             // match integer literal
+            // TODO negative literal support
 
             var token = try String.init_with_contents(allocator, code.charAt(0).?);
             defer token.deinit();
@@ -73,7 +74,7 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
                 const char = code.charAt(0).?;
                 try token.concat(char);
                 try code.remove(0);
-                
+
                 if (code.isEmpty()) {
                     return error.UnclosedDelimiter;
                 }
@@ -101,14 +102,14 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
                 const char = code.charAt(i).?[0];
 
-                if(char == 170) {
+                if (char == 170) {
                     return error.UnclosedDelimiter;
                 }
 
-                if(char == '(') {
+                if (char == '(') {
                     openParenthCount += 1;
                 } else if (char == ')') {
-                    if(openParenthCount == 0) {
+                    if (openParenthCount == 0) {
                         break;
                     }
                     openParenthCount -= 1;

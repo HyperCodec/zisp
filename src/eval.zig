@@ -40,7 +40,7 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
         .context => |context| {
             _ = try evaluate(allocator, context, runtime);
 
-            for(ast.items[1..]) |tree| {
+            for (ast.items[1..]) |tree| {
                 switch (tree) {
                     .context => |context2| _ = try evaluate(allocator, context2, runtime),
                     .constant => return error.CannotCallValue,
@@ -136,7 +136,7 @@ pub const Environment = struct {
         });
 
         try self.globals.put("%", GlobalValue{
-            .function = FunctionLiteral {
+            .function = FunctionLiteral{
                 .internal = internal_modulo,
             },
         });
@@ -145,7 +145,7 @@ pub const Environment = struct {
 
         try self.globals.put("println", GlobalValue{ .function = FunctionLiteral{ .internal = internal_println } });
 
-        try self.globals.put("global", GlobalValue { .function = FunctionLiteral { .internal = global_assign }});
+        try self.globals.put("global", GlobalValue{ .function = FunctionLiteral{ .internal = global_assign } });
     }
 };
 
@@ -202,7 +202,7 @@ pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime)
 }
 
 pub fn internal_modulo(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
-    if(args.len != 2) {
+    if (args.len != 2) {
         return error.InvalidArgCount;
     }
 
@@ -238,12 +238,12 @@ pub fn internal_println(_: std.mem.Allocator, args: []const model.Atom, _: *Runt
 // TODO printf and printfln
 
 pub fn global_assign(_: std.mem.Allocator, args: []const model.Atom, runtime: *Runtime) !?model.Atom {
-    if(args.len != 2) {
+    if (args.len != 2) {
         return error.InvalidArgCount;
     }
 
-    switch(args[0]) {
-        .str => |arg1| try runtime.env.globals.put(arg1.str(), GlobalValue { .atom = args[1] }),
+    switch (args[0]) {
+        .str => |arg1| try runtime.env.globals.put(arg1.str(), GlobalValue{ .atom = args[1] }),
         .int => return error.TypeMismatch,
     }
 
