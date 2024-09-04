@@ -69,6 +69,7 @@ fn run_code(allocator: std.mem.Allocator, code: []const u8) !void {
 
     if (args.show_ast) {
         try lexer.display_ast(ast, allocator, 0);
+        std.debug.print("----------------------\n", .{});
     }
 
     var runtime = eval.Runtime.init(allocator);

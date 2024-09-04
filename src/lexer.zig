@@ -159,9 +159,10 @@ pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Alloc
             try indentation.concat("\t");
         }
 
-        std.debug.print("{s}tree start\n", .{indentation.str()});
-
-        try indentation.concat("\t");
+        if(depth == 0) {
+            std.debug.print("begin tree\n", .{});
+            try indentation.concat("\t");
+        }
 
         switch (tree) {
             .constant => |atom| switch (atom) {
