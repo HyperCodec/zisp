@@ -30,6 +30,8 @@ Contexts are also used in separating multiple sequential calls as well. Take thi
 
 The contexts are used here to tell the interpreter that these are two separate calls.
 
+### Comments
+Comments can be added with `//`. When a comment character is reached, the interpreter will ignore the rest of the line.
 
 ## Internal functions
 - `+ arg1 arg2` - adds two numbers together. can also concatenate two strings together
