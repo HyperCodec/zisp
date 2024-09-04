@@ -71,3 +71,13 @@ pub fn div(a: Atom, b: Atom) Error!Atom {
         .str => error.OperationNotSupported,
     };
 }
+
+pub fn modulo(a: Atom, b: Atom) Error!Atom {
+    return switch(a) {
+        .int => switch(b) {
+            .int => Atom{ .int = @mod(a.int, b.int) },
+            .str => error.OperationNotSupported,
+        },
+        .str => error.OperationNotSupported
+    };
+}

@@ -10,6 +10,7 @@ pub const Error = error{
 // TODO maybe accept []const u8 and convert instead of *String so it doesn't mutate outer context.
 pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(model.TokenTree) {
     var code = try String.init_with_contents(allocator, haystack);
+    defer code.deinit();
 
     var tree = std.ArrayList(model.TokenTree).init(allocator);
 

@@ -135,6 +135,12 @@ pub const Environment = struct {
             },
         });
 
+        try self.globals.put("%", GlobalValue{
+            .function = FunctionLiteral {
+                .internal = internal_modulo,
+            },
+        });
+
         try self.globals.put("print", GlobalValue{ .function = FunctionLiteral{ .internal = internal_print } });
 
         try self.globals.put("println", GlobalValue{ .function = FunctionLiteral{ .internal = internal_println } });
@@ -193,6 +199,14 @@ pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime)
     }
 
     return try model.div(args[0], args[1]);
+}
+
+pub fn internal_modulo(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
+    if(args.len != 2) {
+        return error.InvalidArgCount;
+    }
+
+    return try model.modulo(args[0], args[1]);
 }
 
 pub fn internal_print(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
