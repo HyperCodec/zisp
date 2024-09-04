@@ -12,20 +12,6 @@ pub const Atom = union(enum) {
     str: String,
 };
 
-pub const FunctionLiteral = union(enum) {
-    internal: *const fn (allocator: std.mem.Allocator, args: []const Atom) anyerror!?Atom,
-    defined: std.ArrayList(TokenTree),
-};
-
-pub fn deinit_function_literal(literal: *FunctionLiteral) void {
-    switch (literal.*) {
-        .defined => |defined| defined.deinit(),
-        .internal => {},
-    }
-
-    literal.* = undefined;
-}
-
 pub const Error = error{
     TypeMismatch,
     OperationNotSupported,

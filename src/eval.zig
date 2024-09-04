@@ -83,7 +83,7 @@ pub const Runtime = struct {
             .function => |func| switch (func) {
                 // TODO inject args into defined smh
                 .defined => |ast| evaluate(allocator, ast, self),
-                .internal => |internal| internal(allocator, args),
+                .internal => |internal| internal(allocator, args, self),
             },
         };
     }
@@ -119,35 +119,51 @@ pub const Environment = struct {
     }
 
     pub fn add_default_globals(self: *Self) !void {
-        try self.globals.put("+", GlobalValue{ .function = model.FunctionLiteral{ .internal = internal_add } });
+        try self.globals.put("+", GlobalValue{ .function = FunctionLiteral{ .internal = internal_add } });
 
-        try self.globals.put("-", GlobalValue{ .function = model.FunctionLiteral{
+        try self.globals.put("-", GlobalValue{ .function = FunctionLiteral{
             .internal = internal_sub,
         } });
 
-        try self.globals.put("*", GlobalValue{ .function = model.FunctionLiteral{
+        try self.globals.put("*", GlobalValue{ .function = FunctionLiteral{
             .internal = internal_mult,
         } });
 
         try self.globals.put("/", GlobalValue{
-            .function = model.FunctionLiteral{
+            .function = FunctionLiteral{
                 .internal = internal_div,
             },
         });
 
-        try self.globals.put("print", GlobalValue{ .function = model.FunctionLiteral{ .internal = internal_print } });
+        try self.globals.put("print", GlobalValue{ .function = FunctionLiteral{ .internal = internal_print } });
 
-        try self.globals.put("println", GlobalValue{ .function = model.FunctionLiteral{ .internal = internal_println } });
+        try self.globals.put("println", GlobalValue{ .function = FunctionLiteral{ .internal = internal_println } });
+
+        try self.globals.put("global", GlobalValue { .function = FunctionLiteral { .internal = global_assign }});
     }
 };
 
 // TODO maybe just merge function literal into atom.
 pub const GlobalValue = union(enum) {
     atom: model.Atom,
-    function: model.FunctionLiteral,
+    function: FunctionLiteral,
 };
 
-pub fn internal_add(allocator: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
+pub const FunctionLiteral = union(enum) {
+    internal: *const fn (allocator: std.mem.Allocator, args: []const model.Atom, runtime: *Runtime) anyerror!?model.Atom,
+    defined: std.ArrayList(model.TokenTree),
+};
+
+pub fn deinit_function_literal(literal: *FunctionLiteral) void {
+    switch (literal.*) {
+        .defined => |defined| defined.deinit(),
+        .internal => {},
+    }
+
+    literal.* = undefined;
+}
+
+pub fn internal_add(allocator: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
     if (args.len != 2) {
         return error.InvalidArgCount;
     }
@@ -155,7 +171,7 @@ pub fn internal_add(allocator: std.mem.Allocator, args: []const model.Atom) !?mo
     return try model.add(allocator, args[0], args[1]);
 }
 
-pub fn internal_sub(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
+pub fn internal_sub(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
     if (args.len != 2) {
         return error.InvalidArgCount;
     }
@@ -163,7 +179,7 @@ pub fn internal_sub(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom
     return try model.sub(args[0], args[1]);
 }
 
-pub fn internal_mult(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
+pub fn internal_mult(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
     if (args.len != 2) {
         return error.InvalidArgCount;
     }
@@ -171,7 +187,7 @@ pub fn internal_mult(_: std.mem.Allocator, args: []const model.Atom) !?model.Ato
     return try model.mult(args[0], args[1]);
 }
 
-pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
+pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
     if (args.len != 2) {
         return error.InvalidArgCount;
     }
@@ -179,7 +195,7 @@ pub fn internal_div(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom
     return try model.div(args[0], args[1]);
 }
 
-pub fn internal_print(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
+pub fn internal_print(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
     if (args.len != 1) {
         return error.InvalidArgCount;
     }
@@ -192,7 +208,7 @@ pub fn internal_print(_: std.mem.Allocator, args: []const model.Atom) !?model.At
     return null;
 }
 
-pub fn internal_println(_: std.mem.Allocator, args: []const model.Atom) !?model.Atom {
+pub fn internal_println(_: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
     if (args.len != 1) {
         return error.InvalidArgCount;
     }
@@ -206,3 +222,16 @@ pub fn internal_println(_: std.mem.Allocator, args: []const model.Atom) !?model.
 }
 
 // TODO printf and printfln
+
+pub fn global_assign(_: std.mem.Allocator, args: []const model.Atom, runtime: *Runtime) !?model.Atom {
+    if(args.len != 2) {
+        return error.InvalidArgCount;
+    }
+
+    switch(args[0]) {
+        .str => |arg1| try runtime.env.globals.put(arg1.str(), GlobalValue { .atom = args[1] }),
+        .int => return error.TypeMismatch,
+    }
+
+    return null;
+}
