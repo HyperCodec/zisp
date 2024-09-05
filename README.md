@@ -13,9 +13,17 @@ A simple lisp implemented in zig. (my first zig project :D)
 ### Calling a function
 You can call a function by running `functionName arg1 arg2 ...`
 
+### Defining a function
+You can define a function with the following syntax:
+```
+def functionName (argname1 argname2) (body)
+```
+
+Unlike the `global` function, `def` is a sort of macro that can accept identifiers and contexts as their literal tokens.
+
 ### Primitives
-`int` - a 32-bit signed integer. literals defined by just typing the actual number characters.
-`str` - a variable-length string. literals defined using quotation marks.
+- `int` - a 32-bit signed integer. literals defined by just typing the actual number characters.
+- `str` - a variable-length string. literals defined using quotation marks.
 
 ### Contexts
 A context is used to separate a call from other calls. For instance:
