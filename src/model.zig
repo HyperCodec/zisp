@@ -19,6 +19,7 @@ pub const Error = error{
     IdentDoesNotExist,
     CannotCallValue,
     InvalidType,
+    WrongToken,
 };
 
 pub fn add(allocator: std.mem.Allocator, a: Atom, b: Atom) !Atom {

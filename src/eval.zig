@@ -13,7 +13,50 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
 
     return switch (ast.items[0]) {
         .ident => |ident| {
-            // this ident has to be a function.
+            if(std.mem.eql(u8, ident.str(), "def")) {
+                // function definition has to be handled differently
+
+                const name = ast.items[1];
+                const params = ast.items[2];
+                const body = switch(ast.items[3]) {
+                    .context => |context| context,
+                    else => return error.WrongToken,
+                };
+
+                switch(name) {
+                    .ident => |functionName| switch(params) {
+                        .context => |context| {
+                            var parametersFull = std.ArrayList(String).init(allocator);
+
+                            for(context.items) |arg| {
+                                switch(arg) {
+                                    .ident => |argName| try parametersFull.append(argName),
+                                    else => return error.WrongToken,
+                                }
+                            }
+
+                            const defined = DefinedFunction {
+                                .parameters = parametersFull,
+                                .body = body,
+                            };
+
+                            try runtime.env.globals.put(functionName.str(), GlobalValue {
+                                .function = FunctionLiteral {
+                                    .defined = defined
+                                }
+                            });
+                        },
+                        else => return error.WrongToken,
+                    },
+                    
+                    // maybe allow runtime-evaluated function names?
+                    else => return error.WrongToken
+                }
+
+                return null;
+            }
+
+            // this ident has to be a function call.
             var args = std.ArrayList(model.Atom).init(allocator);
             defer args.deinit();
 
@@ -82,7 +125,7 @@ pub const Runtime = struct {
             .atom => error.CannotCallValue,
             .function => |func| switch (func) {
                 // TODO inject args into defined smh
-                .defined => |ast| evaluate(allocator, ast, self),
+                .defined => |defined| evaluate(allocator, defined.body, self),
                 .internal => |internal| internal(allocator, args, self),
             },
         };
@@ -157,7 +200,12 @@ pub const GlobalValue = union(enum) {
 
 pub const FunctionLiteral = union(enum) {
     internal: *const fn (allocator: std.mem.Allocator, args: []const model.Atom, runtime: *Runtime) anyerror!?model.Atom,
-    defined: std.ArrayList(model.TokenTree),
+    defined: DefinedFunction,
+};
+
+pub const DefinedFunction = struct {
+    parameters: std.ArrayList(String),
+    body: std.ArrayList(model.TokenTree),
 };
 
 pub fn deinit_function_literal(literal: *FunctionLiteral) void {

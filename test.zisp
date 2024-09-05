@@ -1,3 +1,8 @@
-(println "hello world") // test
+(def sayHello () (
+    // test
+    println "hello world"
+))
+
+(sayHello)
 (global "x" (+ (* 5 3) 2))
 (println x)
