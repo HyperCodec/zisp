@@ -1,8 +1,12 @@
-(def sayHello () (
+(def sayHello (name) (
     // test
-    println "hello world"
+    (print "hello ")
+    (println name)
 ))
 
-(sayHello)
-(global "x" (+ (* 5 3) 2))
+// (var "person" (input "name: "))
+(var "person" "test")
+
+(sayHello person)
+(var "x" (+ (* 5 3) 2))
 (println x)
