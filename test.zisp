@@ -9,3 +9,6 @@
 (sayHello person)
 (var "x" (+ (* 5 3) 2))
 (println x)
+
+(var "list_test" ["a" "b" "c" "d"])
+(println (iget list_test 0))
