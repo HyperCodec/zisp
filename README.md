@@ -53,5 +53,6 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `% a b` - gets the modulo of the two numbers. follows the true mathematical moduluo
 - `print arg` - prints the provided text to the console
 - `println arg` - prints the provided text to the console (with a newline)
+- `input arg` - prints the provided text to the console and waits for user input. returns a string.
 - `global name val` - sets a global variable of name and value
 - `var name val` - sets a local variable of name and value
