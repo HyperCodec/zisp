@@ -58,3 +58,6 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `global name val` - sets a global variable of name and value
 - `var name val` - sets a local variable of name and value
 - `iget list index` - retrieves the value at the specified index from the list
+- `append list item` - appends an item to the end of the list
+- `insert list index item` - inserts an item at the index of the list and pushes everything else over
+- `extend list1 list2` - Adds the contents of list2 to list1
