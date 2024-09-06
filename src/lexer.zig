@@ -64,6 +64,7 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
 
         if (code.charAt(0).?[0] == '"') {
             // match string literal
+            // TODO support fancy stuff like escape characters and \n
 
             var token = String.init(allocator);
             try code.remove(0);
