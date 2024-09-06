@@ -46,12 +46,12 @@ The contexts are used here to tell the interpreter that these are two separate c
 Comments can be added with `//`. When a comment character is reached, the interpreter will ignore the rest of the line.
 
 ## Internal functions
-- `+ arg1 arg2` - adds two numbers together. can also concatenate two strings together
-- `- arg1 arg2` - subtracts the second number from the first
-- `* arg1 arg2` - multiplies two numbers together
-- `/ arg1 arg2` - divides the first number by the second
-- `% arg1 arg2` - gets the modulo of the two numbers. follows the true mathematical moduluo
+- `+ a b` - adds two numbers together. can also concatenate two strings together
+- `- a b` - subtracts the second number from the first
+- `* a b` - multiplies two numbers together
+- `/ a b` - divides the first number by the second
+- `% a b` - gets the modulo of the two numbers. follows the true mathematical moduluo
 - `print arg` - prints the provided text to the console
 - `println arg` - prints the provided text to the console (with a newline)
-- `global arg1 arg2` - sets a global variable of name arg1 and value arg2
-- `var arg1 arg2` - sets a local variable of name arg1 and value arg2
+- `global name val` - sets a global variable of name and value
+- `var name val` - sets a local variable of name and value
