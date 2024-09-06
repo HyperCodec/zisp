@@ -21,9 +21,10 @@ def functionName (argname1 argname2) (body)
 
 Unlike the `global` function, `def` is a sort of macro that can accept identifiers and contexts as their literal tokens. Functions do reside in the global scope, meaning that 
 
-### Primitives
+### Builtin Types
 - `int` - a 32-bit signed integer. literals defined by just typing the actual number characters.
 - `str` - a variable-length string. literals defined using quotation marks.
+- `list` - A list containing variable types and of variable length. delimited by square brackets, with whitespace separating elements (ex: ["a" "b" "c"]).
 
 ### Contexts
 A context is used to separate a call from other calls. For instance:
@@ -56,3 +57,4 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `input arg` - prints the provided text to the console and waits for user input. returns a string.
 - `global name val` - sets a global variable of name and value
 - `var name val` - sets a local variable of name and value
+- `iget list index` - retrieves the value at the specified index from the list
