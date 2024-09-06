@@ -391,11 +391,11 @@ pub fn internal_input(allocator: std.mem.Allocator, args: []const model.Atom, _:
 
     const stdin = std.io.getStdIn().reader();
 
-    var input = String.init(allocator);
     var buf: [1024 * 2]u8 = undefined;
 
     if(try stdin.readUntilDelimiterOrEof(buf[0..], '\n')) |filled| {
-        try input.concat(filled);
+        const input = try String.init_with_contents(allocator, filled);
+
         return model.Atom { .str = input };
     }
 
