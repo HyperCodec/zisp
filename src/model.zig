@@ -20,6 +20,7 @@ pub const Error = error{
     CannotCallValue,
     InvalidType,
     WrongToken,
+    InternalFunctionError,
 };
 
 pub fn add(allocator: std.mem.Allocator, a: Atom, b: Atom) !Atom {

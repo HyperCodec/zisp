@@ -254,6 +254,12 @@ pub const Environment = struct {
 
         try self.add_global("println", GlobalValue{ .function = FunctionLiteral{ .internal = internal_println } });
 
+        try self.add_global("input", GlobalValue {
+            .function = FunctionLiteral {
+                .internal = internal_input,
+            },
+        });
+
         try self.add_global("global", GlobalValue{ .function = FunctionLiteral{ .internal = global_assign } });
 
         try self.add_global("var", GlobalValue {
@@ -370,6 +376,31 @@ pub fn internal_println(_: std.mem.Allocator, args: []const model.Atom, _: *Runt
 }
 
 // TODO printf and printfln
+
+pub fn internal_input(allocator: std.mem.Allocator, args: []const model.Atom, _: *Runtime) !?model.Atom {
+    if (args.len != 1) {
+        return error.InvalidArgCount;
+    }
+
+    const stdout = std.io.getStdOut().writer();
+
+    switch(args[0]) {
+        .str => |str| try stdout.print("{s}", .{str.str()}),
+        else => return error.TypeMismatch,
+    }
+
+    const stdin = std.io.getStdIn().reader();
+
+    var input = String.init(allocator);
+    var buf: [1024 * 2]u8 = undefined;
+
+    if(try stdin.readUntilDelimiterOrEof(buf[0..], '\n')) |filled| {
+        try input.concat(filled);
+        return model.Atom { .str = input };
+    }
+
+    return error.InternalFunctionError;
+}
 
 pub fn global_assign(_: std.mem.Allocator, args: []const model.Atom, runtime: *Runtime) !?model.Atom {
     if (args.len != 2) {

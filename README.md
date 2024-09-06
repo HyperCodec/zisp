@@ -19,7 +19,7 @@ You can define a function with the following syntax:
 def functionName (argname1 argname2) (body)
 ```
 
-Unlike the `global` function, `def` is a sort of macro that can accept identifiers and contexts as their literal tokens.
+Unlike the `global` function, `def` is a sort of macro that can accept identifiers and contexts as their literal tokens. Functions do reside in the global scope, meaning that 
 
 ### Primitives
 - `int` - a 32-bit signed integer. literals defined by just typing the actual number characters.
@@ -54,3 +54,4 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `print arg` - prints the provided text to the console
 - `println arg` - prints the provided text to the console (with a newline)
 - `global arg1 arg2` - sets a global variable of name arg1 and value arg2
+- `var arg1 arg2` - sets a local variable of name arg1 and value arg2

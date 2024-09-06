@@ -4,8 +4,7 @@
     (println name)
 ))
 
-// (var "person" (input "name: "))
-(var "person" "test")
+(var "person" (input "name: "))
 
 (sayHello person)
 (var "x" (+ (* 5 3) 2))
