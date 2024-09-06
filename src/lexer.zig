@@ -131,6 +131,45 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             continue;
         }
 
+        if(code.chatAt(0).?[0] == '[') {
+            // match list literal
+            
+            var i: usize = 1;
+            var openListCount: usize = 0;
+
+            while (true) {
+                if (i == code.len()) {
+                    return error.UnclosedDelimiter;
+                }
+
+                const char = code.charAt(i).?[0];
+
+                if (char == 170) {
+                    return error.UnclosedDelimiter;
+                }
+
+                if (char == '[') {
+                    openListCount += 1;
+                } else if (char == ']') {
+                    if (openListCount == 0) {
+                        break;
+                    }
+                    openListCount -= 1;
+                }
+
+                i += 1;
+            }
+
+            const listContents = code.str()[0..i];
+            try code.removeRange(0, i+1);
+
+            const tokens = try parse(listContents, allocator);
+
+            try tokens.append(model.TokenTree {
+                .list_init = tokens,
+            });
+        }
+
         if (!stringops.c_iswhitespace(code.charAt(0).?[0])) {
             // match ident
 

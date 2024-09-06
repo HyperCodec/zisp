@@ -5,11 +5,18 @@ pub const TokenTree = union(enum) {
     constant: Atom,
     context: std.ArrayList(TokenTree),
     ident: String,
+
+    list_init: std.ArrayList(TokenTree),
 };
 
 pub const Atom = union(enum) {
     int: i32,
     str: String,
+
+    // not implemented
+    list: std.ArrayList(Atom),
+    table: std.StringHashMap(Atom),
+    //function: FunctionLiteral
 };
 
 pub const Error = error{
