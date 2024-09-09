@@ -12,3 +12,5 @@
 
 (var "list_test" ["a" "b" "c" "d"])
 (println (iget list_test 0))
+(println (pop list_test))
+(println (pop list_test))
