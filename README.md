@@ -61,3 +61,4 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `append list item` - appends an item to the end of the list
 - `insert list index item` - inserts an item at the index of the list and pushes everything else over
 - `extend list1 list2` - Adds the contents of list2 to list1
+- `pop list1 | pop list1 index` - Removes the value from the list at the optionally specified index and returns it. If the index is not specified, it defaults to the last element in the list.
