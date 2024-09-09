@@ -64,8 +64,8 @@ fn zisp_const_test() !void {
 }
 
 fn run_code(allocator: std.mem.Allocator, code: []const u8) !void {
-    const ast = try lexer.parse(code, allocator);
-    // defer lexer.deinit_ast(&ast);
+    var ast = try lexer.parse(code, allocator);
+    defer lexer.deinit_ast(&ast);
 
     if (args.show_ast) {
         try lexer.display_ast(ast, allocator, 0);

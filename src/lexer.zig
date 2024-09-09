@@ -232,19 +232,20 @@ pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Alloc
     }
 }
 
-// pub fn deinit_ast(ast: *std.ArrayList(model.TokenTree)) void {
-//     for(0..ast.items.len, ast.items) |_, tree| {
-//         switch(tree) {
-//             .constant => |constant| switch(constant) {
-//                 .str => |str| str.deinit(),
-//                 .int => continue,
-//             },
-//             .context => |subtree| deinit_ast(subtree),
-//             .ident => |ident| ident.deinit(),
-//         }
-//     }
+pub fn deinit_ast(ast: *std.ArrayList(model.TokenTree)) void {
+    for(0..ast.items.len, ast.items) |_, *tree| {
+        switch(tree.*) {
+            .constant => |*constant| switch(constant.*) {
+                .str => |*str| str.deinit(),
+                else => continue, // other values aren't constants or dont need deinit
+            },
+            .context => |*subtree| deinit_ast(subtree),
+            .ident => |*ident| ident.deinit(),
+            .list_init => |*list| list.deinit(),
+        }
+    }
 
-//     ast.deinit();
+    ast.deinit();
 
-//     ast.* = undefined;
-// }
+    ast.* = undefined;
+}
