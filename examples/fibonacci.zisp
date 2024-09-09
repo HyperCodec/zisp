@@ -23,7 +23,7 @@
     (print ": ")
     (println (fibonacci depth))
 
-    (rangeIter (+ depth 1))
+    (fibSeq (+ depth 1))
 ))
 
 (fibSeq 0)
