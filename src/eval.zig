@@ -284,6 +284,7 @@ pub const Environment = struct {
         try self.register_internal_function("extend", internal_list_extend);
         try self.register_internal_function("pop", internal_list_pop);
         try self.register_internal_function("createTable", create_table);
+        try self.register_internal_function("put", internal_table_put);
     }
 
     pub fn register_internal_function(
@@ -564,4 +565,27 @@ pub fn create_table(allocator: std.mem.Allocator, args: []*model.Atom, _: *Runti
     return model.Atom {
         .table = hashmap,
     };
+}
+
+pub fn internal_table_put(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
+    if(args.len != 3) {
+        return error.InvalidArgCount;
+    }
+
+    const table = switch(args[0].*) {
+        .table => |*table| table,
+        else => return error.TypeMismatch,
+    };
+
+    const key = args[1].*;
+
+    switch(key) {
+        // can't allow these as indices
+        .list => return error.TypeMismatch,
+        .table => return error.TypeMismatch,
+    }
+
+    try table.put(key, args[2].*);
+
+    return null;
 }
