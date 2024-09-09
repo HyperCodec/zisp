@@ -9,13 +9,15 @@ pub const TokenTree = union(enum) {
     list_init: std.ArrayList(TokenTree),
 };
 
+pub const Table = std.AutoHashMap(Atom, Atom);
+
 pub const Atom = union(enum) {
     int: i32,
     str: String,
 
     // not implemented
     list: std.ArrayList(Atom),
-    table: std.StringHashMap(Atom),
+    table: Table,
     //function: FunctionLiteral
 };
 

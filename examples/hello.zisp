@@ -1,0 +1,9 @@
+(def sayHello (name) (
+    // test
+    (print "hello ")
+    (println name)
+))
+
+(var "person" (input "What is your name? "))
+
+(sayHello person)

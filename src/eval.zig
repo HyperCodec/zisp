@@ -283,6 +283,7 @@ pub const Environment = struct {
         try self.register_internal_function("insert", internal_list_insert);
         try self.register_internal_function("extend", internal_list_extend);
         try self.register_internal_function("pop", internal_list_pop);
+        try self.register_internal_function("createTable", create_table);
     }
 
     pub fn register_internal_function(
@@ -550,4 +551,17 @@ pub fn internal_list_pop(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime)
     }
 
     return error.InvalidArgCount;
+}
+
+pub fn create_table(allocator: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
+    // TODO maybe use args to init.
+    if(args.len != 0) {
+        return error.InvalidArgCount;
+    }
+
+    const hashmap = model.Table.init(allocator);
+
+    return model.Atom {
+        .table = hashmap,
+    };
 }
