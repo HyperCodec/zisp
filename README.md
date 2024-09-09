@@ -25,6 +25,7 @@ Unlike the `global` function, `def` is a sort of macro that can accept identifie
 - `int` - a 32-bit signed integer. literals defined by just typing the actual number characters.
 - `str` - a variable-length string. literals defined using quotation marks.
 - `list` - A list containing variable types and of variable length. delimited by square brackets, with whitespace separating elements (ex: ["a" "b" "c"]).
+- `table` - Maps a key to a value. To create one, use the `createTable` function.
 
 ### Contexts
 A context is used to separate a call from other calls. For instance:
@@ -62,3 +63,4 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `insert list index item` - inserts an item at the index of the list and pushes everything else over
 - `extend list1 list2` - Adds the contents of list2 to list1
 - `pop list1 | pop list1 index` - Removes the value from the list at the optionally specified index and returns it. If the index is not specified, it defaults to the last element in the list.
+- `createTable` - Returns a new table.
