@@ -1,0 +1,26 @@
+// (def display (self) (
+//      TODO ability to do `self` syntax with table functions.
+// ))
+
+(def displayPerson (person) (
+    (print "Name: ")
+    (println (kget person "name"))
+    (print "Age: ")
+    (println (kget person "age"))
+))
+
+(var "user" (createTable))
+(put user "name" (input "What's your name? "))
+(put user "age" (input "What's your age? "))
+
+(var "anotherPerson" (createTable))
+(put anotherPerson "name" "john")
+(put anotherPerson "age" 10)
+
+(println "John:")
+(displayPerson anotherPerson)
+
+(println "")
+
+(println "You:")
+(displayPerson user)
