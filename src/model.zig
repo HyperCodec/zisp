@@ -87,7 +87,6 @@ pub const Atom = union(enum) {
     str: String,
     bool: bool,
 
-    // not implemented
     list: std.ArrayList(Atom),
     table: Table,
     //function: FunctionLiteral
