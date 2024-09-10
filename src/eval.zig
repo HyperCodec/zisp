@@ -286,6 +286,7 @@ pub const Environment = struct {
         try self.register_internal_function("createTable", create_table);
         try self.register_internal_function("put", internal_table_put);
         try self.register_internal_function("kget", internal_table_get);
+        try self.register_internal_function("has", internal_table_has);
     }
 
     pub fn register_internal_function(
@@ -605,4 +606,19 @@ pub fn internal_table_get(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime
     const key = args[1].*;
 
     return table.get(key);
+}
+
+// TODO prob one of these functions but for 
+pub fn internal_table_has(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
+    if(args.len != 2) {
+        return error.InvalidArgCount;
+    }
+
+    return switch(args[0].*) {
+        .table => |table| switch(args[1].*) {
+            .str => |key| table.contains(key),
+            else => error.TypeMismatch,
+        },
+        else => error.TypeMismatch,
+    };
 }
