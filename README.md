@@ -65,3 +65,4 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `pop list1 | pop list1 index` - Removes the value from the list at the optionally specified index and returns it. If the index is not specified, it defaults to the last element in the list.
 - `createTable` - Returns a new table.
 - `put table key val` - Puts a value in the table at a specified key.
+- `kget table key` - Returns the value in a table with a specified key.
