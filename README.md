@@ -22,6 +22,7 @@ def functionName (argname1 argname2) (body)
 Unlike the `global` function, `def` is a sort of macro that can accept identifiers and contexts as their literal tokens. Functions do reside in the global scope, meaning that 
 
 ### Builtin Types
+- `bool` - either true or false. same format in literals.
 - `int` - a 32-bit signed integer. literals defined by just typing the actual number characters.
 - `str` - a variable-length string. literals defined using quotation marks.
 - `list` - A list containing variable types and of variable length. delimited by square brackets, with whitespace separating elements (ex: ["a" "b" "c"]).
