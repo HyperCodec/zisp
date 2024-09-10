@@ -85,6 +85,7 @@ pub const Table = std.HashMap(Atom, Atom, TableContext, std.hash_map.default_max
 pub const Atom = union(enum) {
     int: i32,
     str: String,
+    bool: bool,
 
     // not implemented
     list: std.ArrayList(Atom),

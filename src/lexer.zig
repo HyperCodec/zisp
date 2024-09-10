@@ -33,6 +33,30 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             continue;
         }
 
+        if(code.startsWith("true")) {
+            try code.removeRange(0, 4);
+
+            try tree.append(model.TokenTree {
+                .constant = model.Atom {
+                    .bool = true,
+                },
+            });
+
+            continue;
+        }
+
+        if(code.startsWith("false")) {
+            try code.removeRange(0, 5);
+
+            try tree.append(model.TokenTree {
+                .constant = model.Atom {
+                    .bool = false,
+                },
+            });
+
+            continue;
+        }
+
         if (stringops.c_iswhitespace(code.charAt(0).?[0])) {
             try code.remove(0);
             continue;

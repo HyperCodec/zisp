@@ -615,10 +615,7 @@ pub fn internal_table_has(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime
     }
 
     return switch(args[0].*) {
-        .table => |table| switch(args[1].*) {
-            .str => |key| table.contains(key),
-            else => error.TypeMismatch,
-        },
+        .table => |table| model.Atom { .bool = table.contains(args[1].*) },
         else => error.TypeMismatch,
     };
 }
