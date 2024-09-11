@@ -1,7 +1,9 @@
 const eval = @import("../eval.zig");
 const Runtime = eval.Runtime;
-const Allocator = @import("std").mem.Allocator;
+const std = @import("std");
+const Allocator = std.mem.Allocator;
 const model = @import("../model.zig");
+const String = @import("string").String;
 
 pub fn setup(env: *eval.Environment) !void {
     try env.register_internal_function("print", internal_print);
