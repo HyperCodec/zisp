@@ -1,14 +1,13 @@
 const Environment = @import("../eval.zig").Environment;
 const arithmetic = @import("arithmetic.zig");
+const io = @import("io.zig");
 
 pub fn setup(env: *Environment) !void {
     try arithmetic.setup(env);
+    try io.setup(env);
 }
 
 // fn add_default_globals(self: *Self) !void {
-//         try self.register_internal_function("print", internal_print);
-//         try self.register_internal_function("println", internal_println);
-//         try self.register_internal_function("input", internal_input);
 //         try self.register_internal_function("global", global_assign);
 //         try self.register_internal_function("var", local_assign);
 //         try self.register_internal_function("iget", internal_list_get);
