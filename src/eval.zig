@@ -375,6 +375,7 @@ pub fn internal_println(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) 
     switch (args[0].*) {
         .int => |int| std.debug.print("{}\n", .{int}),
         .str => |str| std.debug.print("{s}\n", .{str.str()}),
+        .bool => |boolean| std.debug.print("{}\n", .{boolean}),
         else => return error.OperationNotSupported,
     }
 
