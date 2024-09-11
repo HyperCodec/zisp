@@ -1,0 +1,7 @@
+(var "coolObject" (createTable))
+
+(def sayHello (self) (println "hello world"))
+
+(put coolObject "sayHello" sayHello)
+
+(runMethod coolObject "sayHello" [])
