@@ -19,7 +19,28 @@ You can define a function with the following syntax:
 def functionName (argname1 argname2) (body)
 ```
 
-Unlike the `global` function, `def` is a sort of macro that can accept identifiers and contexts as their literal tokens. Functions do reside in the global scope, meaning that 
+Unlike the `global` function, `def` is a sort of macro that can accept identifiers and contexts as their literal tokens. Functions reside in the local scope and can be run by value.
+
+### OOP
+Zisp has a `runMethod` function, which will pass a value into `self`. Consider the following:
+```
+(var "epicTable" (createTable))
+(put epicTable "counter" 0)
+
+// first define a method that accepts `self` as the first argument.
+(def count (self) (
+    (var "counter" (kget self "counter"))
+    (print "Count: ")
+    (println counter)
+    (put self "counter" (+ counter 1))
+))
+
+// next, put that method in the table like a regular value.
+(put epicTable "count" count)
+
+// now, we can use `runMethod` to run our method.
+(runMethod epicTable "count" [])
+```
 
 ### Builtin Types
 - `bool` - either true or false. same format in literals.
@@ -67,3 +88,4 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `createTable` - Returns a new table.
 - `put table key val` - Puts a value in the table at a specified key.
 - `kget table key` - Returns the value in a table with a specified key.
+- `runMethod table key args` - Gets and runs a method in a table, passing the table as the first argument. `args` is a list.

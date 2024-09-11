@@ -1,5 +1,5 @@
 // not doable yet with current std
-(var cache (createTable))
+(var "cache" (createTable))
 (def fibonacci (n) (
     (if (or (eq n 0) (eq n 1)) (
         (return n)
