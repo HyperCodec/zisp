@@ -48,6 +48,7 @@ Zisp has a `runMethod` function, which will pass a value into `self`. Consider t
 - `str` - a variable-length string. literals defined using quotation marks.
 - `list` - A list containing variable types and of variable length. delimited by square brackets, with whitespace separating elements (ex: ["a" "b" "c"]).
 - `table` - Maps a key to a value. To create one, use the `createTable` function.
+- `function` - A literal function as defined by `def`. This type is mainly only referenced in function calls and OOP.
 
 ### Contexts
 A context is used to separate a call from other calls. For instance:
