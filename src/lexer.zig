@@ -33,6 +33,30 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             continue;
         }
 
+        if(code.startsWith("true")) {
+            try code.removeRange(0, 4);
+
+            try tree.append(model.TokenTree {
+                .constant = model.Atom {
+                    .bool = true,
+                },
+            });
+
+            continue;
+        }
+
+        if(code.startsWith("false")) {
+            try code.removeRange(0, 5);
+
+            try tree.append(model.TokenTree {
+                .constant = model.Atom {
+                    .bool = false,
+                },
+            });
+
+            continue;
+        }
+
         if (stringops.c_iswhitespace(code.charAt(0).?[0])) {
             try code.remove(0);
             continue;
@@ -131,6 +155,47 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             continue;
         }
 
+        if(code.charAt(0).?[0] == '[') {
+            // match list literal
+            
+            var i: usize = 1;
+            var openListCount: usize = 0;
+
+            while (true) {
+                if (i == code.len()) {
+                    return error.UnclosedDelimiter;
+                }
+
+                const char = code.charAt(i).?[0];
+
+                if (char == 170) {
+                    return error.UnclosedDelimiter;
+                }
+
+                if (char == '[') {
+                    openListCount += 1;
+                } else if (char == ']') {
+                    if (openListCount == 0) {
+                        break;
+                    }
+                    openListCount -= 1;
+                }
+
+                i += 1;
+            }
+
+            const listContents = code.str()[1..i];
+
+            const tokens = try parse(listContents, allocator);
+            try code.removeRange(0, i+1);
+
+            try tree.append(model.TokenTree {
+                .list_init = tokens,
+            });
+            
+            continue;
+        }
+
         if (!stringops.c_iswhitespace(code.charAt(0).?[0])) {
             // match ident
 
@@ -142,7 +207,6 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             }
 
             try tree.append(model.TokenTree{
-                // idk how i didnt catch this when i was trying to look for the error
                 .ident = token,
             });
         }
@@ -167,28 +231,49 @@ pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Alloc
 
         switch (tree) {
             .constant => |atom| switch (atom) {
+                .bool => |boolean| std.debug.print("{s}Bool({})", .{indentation.str(), boolean}),
                 .str => |str| std.debug.print("{s}Constant(\"{s}\")\n", .{ indentation.str(), str.str() }),
                 .int => |int| std.debug.print("{s}Constant({})\n", .{ indentation.str(), int }),
+                .list => {},
+                .table => {},
+                
+                // TODO deal with this
+                .function => {},
             },
             .ident => |ident| std.debug.print("{s}Ident({s})\n", .{ indentation.str(), ident.str() }),
             .context => |context| try display_ast(context, allocator, depth + 1),
+            .list_init => |list| {
+                std.debug.print("{s}List([\n", .{indentation.str()});
+
+                for(list.items) |item| {
+                    var ast2 = std.ArrayList(model.TokenTree).init(allocator);
+                    defer ast2.deinit();
+
+                    try ast2.append(item);
+
+                    try display_ast(ast2, allocator, depth + 1);
+                }
+
+                std.debug.print("{s}])\n", .{indentation.str()});
+            }
         }
     }
 }
 
-// pub fn deinit_ast(ast: *std.ArrayList(model.TokenTree)) void {
-//     for(0..ast.items.len, ast.items) |_, tree| {
-//         switch(tree) {
-//             .constant => |constant| switch(constant) {
-//                 .str => |str| str.deinit(),
-//                 .int => continue,
-//             },
-//             .context => |subtree| deinit_ast(subtree),
-//             .ident => |ident| ident.deinit(),
-//         }
-//     }
+pub fn deinit_ast(ast: *std.ArrayList(model.TokenTree)) void {
+    for(0..ast.items.len, ast.items) |_, *tree| {
+        switch(tree.*) {
+            .constant => |*constant| switch(constant.*) {
+                .str => |*str| str.deinit(),
+                else => continue, // other values aren't constants or dont need deinit
+            },
+            .context => |*subtree| deinit_ast(subtree),
+            .ident => |*ident| ident.deinit(),
+            .list_init => |*list| list.deinit(),
+        }
+    }
 
-//     ast.deinit();
+    ast.deinit();
 
-//     ast.* = undefined;
-// }
+    ast.* = undefined;
+}
