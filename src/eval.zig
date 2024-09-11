@@ -153,13 +153,13 @@ pub const Runtime = struct {
     }
 
     pub fn run_function(self: *Self, allocator: std.mem.Allocator, ident: []const u8, args: []*model.Atom) anyerror!?model.Atom {
-        const val = self.env.globals.get(ident);
+        const val = try self.env.fetch_variable(ident);
 
         if (val == null) {
             return error.IdentDoesNotExist;
         }
 
-        return switch (val.?) {
+        return switch (val.?.*) {
             .function => |func| switch (func) {
                 // TODO inject args into defined
                 .defined => |defined| {
