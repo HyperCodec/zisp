@@ -11,8 +11,8 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
             .list_init => |items| {
                 var contents = std.ArrayList(model.Atom).init(allocator);
 
-                for(items.items) |item| {
-                    switch(item) {
+                for (items.items) |item| {
+                    switch (item) {
                         .constant => |atom| try contents.append(atom),
                         .context => |context| try contents.append((try evaluate(allocator, context, runtime)).?),
                         .ident => |ident| try contents.append((try runtime.env.fetch_variable(ident.str())).?.*),
@@ -25,53 +25,49 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
                     }
                 }
 
-                return model.Atom {
+                return model.Atom{
                     .list = contents,
                 };
-            }
+            },
         };
     }
 
     return switch (ast.items[0]) {
         .ident => |ident| {
-            if(std.mem.eql(u8, ident.str(), "def")) {
+            if (std.mem.eql(u8, ident.str(), "def")) {
                 // function definition has to be handled differently
 
                 const name = ast.items[1];
                 const params = ast.items[2];
-                const body = switch(ast.items[3]) {
+                const body = switch (ast.items[3]) {
                     .context => |context| context,
                     else => return error.WrongToken,
                 };
 
-                switch(name) {
-                    .ident => |functionName| switch(params) {
+                switch (name) {
+                    .ident => |functionName| switch (params) {
                         .context => |context| {
                             var parametersFull = std.ArrayList(String).init(allocator);
 
-                            for(context.items) |arg| {
-                                switch(arg) {
+                            for (context.items) |arg| {
+                                switch (arg) {
                                     .ident => |argName| try parametersFull.append(argName),
                                     else => return error.WrongToken,
                                 }
                             }
 
-                            const defined = model.DefinedFunction {
+                            const defined = model.DefinedFunction{
                                 .parameters = parametersFull,
                                 .body = body,
                             };
 
-                            try runtime.env.add_local(functionName.str(), model.Atom {
-                                .function = model.FunctionLiteral {
-                                    .defined = defined
-                                }
-                            });
+                            try runtime.env.add_local(functionName.str(), model.Atom{ .function = model.FunctionLiteral{ .defined = defined } });
                         },
                         else => return error.WrongToken,
                     },
-                    
+
                     // maybe allow runtime-evaluated function names?
-                    else => return error.WrongToken
+                    else => return error.WrongToken,
                 }
 
                 return null;
@@ -156,13 +152,13 @@ pub const Runtime = struct {
         return switch (literal) {
             // TODO inject args into defined
             .defined => |defined| {
-                if(args.len != defined.parameters.items.len) {
+                if (args.len != defined.parameters.items.len) {
                     return error.InvalidArgCount;
                 }
 
                 try self.env.enter_new_frame(name, allocator);
 
-                for(0..args.len, args, defined.parameters.items) |_, arg, argName| {
+                for (0..args.len, args, defined.parameters.items) |_, arg, argName| {
                     try self.env.add_local(argName.str(), arg.*);
                 }
 
@@ -227,14 +223,11 @@ pub const Environment = struct {
     }
 
     pub fn current_stack_frame(self: *Self) *StackFrame {
-        return &self.stack.items[self.stack.items.len-1];
+        return &self.stack.items[self.stack.items.len - 1];
     }
 
     pub fn enter_new_frame(self: *Self, functionName: []const u8, allocator: std.mem.Allocator) !void {
-        try self.stack.append(StackFrame {
-            .name = functionName,
-            .locals = std.StringHashMap(model.Atom).init(allocator)
-        });
+        try self.stack.append(StackFrame{ .name = functionName, .locals = std.StringHashMap(model.Atom).init(allocator) });
     }
 
     pub fn exit_frame(self: *Self) void {
@@ -245,18 +238,18 @@ pub const Environment = struct {
     pub fn print_stacktrace(self: *Self) void {
         std.debug.print("Stacktrace (most recent call last):\n", .{});
 
-        for(self.stack.items) |frame| {
+        for (self.stack.items) |frame| {
             std.debug.print("\t{s}\n", .{frame.name});
         }
     }
 
     pub fn fetch_variable(self: *Self, ident: []const u8) !?*model.Atom {
-        if(self.globals.getPtr(ident)) |val| {
+        if (self.globals.getPtr(ident)) |val| {
             return val;
         }
 
-        for(self.stack.items) |frame| {
-            if(frame.locals.getPtr(ident)) |val| {
+        for (self.stack.items) |frame| {
+            if (frame.locals.getPtr(ident)) |val| {
                 return val;
             }
         }
@@ -265,7 +258,7 @@ pub const Environment = struct {
     }
 
     pub fn add_local(self: *Self, name: []const u8, val: model.Atom) !void {
-       try self.current_stack_frame().locals.put(name, val);
+        try self.current_stack_frame().locals.put(name, val);
     }
 
     pub fn add_default_globals(self: *Self) !void {
@@ -291,16 +284,12 @@ pub const Environment = struct {
         try self.register_internal_function("runMethod", run_method);
     }
 
-    pub fn register_internal_function(
-        self: *Self,
-        name: []const u8,
-        function: *const fn(allocator: std.mem.Allocator, args: []*model.Atom, runtime: *Runtime) anyerror!?model.Atom
-    ) !void {
-            return self.add_global(name, model.Atom {
-                .function = model.FunctionLiteral {
-                    .internal = function,
-                },
-            });
+    pub fn register_internal_function(self: *Self, name: []const u8, function: *const fn (allocator: std.mem.Allocator, args: []*model.Atom, runtime: *Runtime) anyerror!?model.Atom) !void {
+        return self.add_global(name, model.Atom{
+            .function = model.FunctionLiteral{
+                .internal = function,
+            },
+        });
     }
 };
 
@@ -366,7 +355,7 @@ pub fn internal_print(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?
     switch (args[0].*) {
         .int => |int| std.debug.print("{}", .{int}),
         .str => |str| std.debug.print("{s}", .{str.str()}),
-        else => return error.OperationNotSupported, // TODO handle list and dict 
+        else => return error.OperationNotSupported, // TODO handle list and dict
     }
 
     return null;
@@ -396,7 +385,7 @@ pub fn internal_input(allocator: std.mem.Allocator, args: []*model.Atom, _: *Run
 
     const stdout = std.io.getStdOut().writer();
 
-    switch(args[0].*) {
+    switch (args[0].*) {
         .str => |str| try stdout.print("{s}", .{str.str()}),
         else => return error.TypeMismatch,
     }
@@ -405,10 +394,10 @@ pub fn internal_input(allocator: std.mem.Allocator, args: []*model.Atom, _: *Run
 
     var buf: [1024 * 2]u8 = undefined;
 
-    if(try stdin.readUntilDelimiterOrEof(buf[0..], '\n')) |filled| {
+    if (try stdin.readUntilDelimiterOrEof(buf[0..], '\n')) |filled| {
         const input = try String.init_with_contents(allocator, filled);
 
-        return model.Atom { .str = input };
+        return model.Atom{ .str = input };
     }
 
     return error.InternalFunctionError;
@@ -428,11 +417,11 @@ pub fn global_assign(_: std.mem.Allocator, args: []*model.Atom, runtime: *Runtim
 }
 
 pub fn local_assign(_: std.mem.Allocator, args: []*model.Atom, runtime: *Runtime) !?model.Atom {
-    if(args.len != 2) {
+    if (args.len != 2) {
         return error.InvalidArgCount;
     }
 
-    const name = switch(args[0].*) {
+    const name = switch (args[0].*) {
         .str => |ident| ident.str(),
         else => return error.TypeMismatch,
     };
@@ -444,12 +433,12 @@ pub fn local_assign(_: std.mem.Allocator, args: []*model.Atom, runtime: *Runtime
 }
 
 pub fn internal_list_get(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if(args.len != 2) {
+    if (args.len != 2) {
         return error.InvalidArgCount;
     }
 
-    return switch(args[0].*) {
-        .list => |list| switch(args[1].*) {
+    return switch (args[0].*) {
+        .list => |list| switch (args[1].*) {
             .int => |index| list.items[@intCast(index)],
             else => error.TypeMismatch,
         },
@@ -458,11 +447,11 @@ pub fn internal_list_get(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime)
 }
 
 pub fn internal_list_append(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if(args.len != 2) {
+    if (args.len != 2) {
         return error.InvalidArgCount;
     }
 
-    switch(args[0].*) {
+    switch (args[0].*) {
         .list => |*list| {
             try list.append(args[1].*);
         },
@@ -473,12 +462,12 @@ pub fn internal_list_append(_: std.mem.Allocator, args: []*model.Atom, _: *Runti
 }
 
 pub fn internal_list_insert(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if(args.len != 3) {
+    if (args.len != 3) {
         return error.InvalidArgCount;
     }
 
     switch (args[0].*) {
-        .list => |*list| switch(args[1].*) {
+        .list => |*list| switch (args[1].*) {
             .int => |int| try list.insert(@intCast(int), args[2].*),
             else => return error.InvalidType,
         },
@@ -489,12 +478,12 @@ pub fn internal_list_insert(_: std.mem.Allocator, args: []*model.Atom, _: *Runti
 }
 
 pub fn internal_list_extend(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if(args.len != 2) {
+    if (args.len != 2) {
         return error.InvalidArgCount;
     }
 
-    switch(args[0].*) {
-        .list => |*list1| switch(args[1].*) {
+    switch (args[0].*) {
+        .list => |*list1| switch (args[1].*) {
             .list => |list2| {
                 try list1.appendSlice(list2.items);
             },
@@ -507,9 +496,9 @@ pub fn internal_list_extend(_: std.mem.Allocator, args: []*model.Atom, _: *Runti
 }
 
 pub fn internal_list_pop(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if(args.len == 2) {
-        switch(args[0].*) {
-            .list => |*list| switch(args[1].*) {
+    if (args.len == 2) {
+        switch (args[0].*) {
+            .list => |*list| switch (args[1].*) {
                 .int => |int| {
                     const index: usize = @intCast(int);
                     const val = list.swapRemove(index);
@@ -522,8 +511,8 @@ pub fn internal_list_pop(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime)
         }
     }
 
-    if(args.len == 1) {
-        switch(args[0].*) {
+    if (args.len == 1) {
+        switch (args[0].*) {
             .list => |*list| {
                 return list.pop();
             },
@@ -536,30 +525,30 @@ pub fn internal_list_pop(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime)
 
 pub fn create_table(allocator: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
     // TODO maybe use args to init.
-    if(args.len != 0) {
+    if (args.len != 0) {
         return error.InvalidArgCount;
     }
 
     const hashmap = model.Table.init(allocator);
 
-    return model.Atom {
+    return model.Atom{
         .table = hashmap,
     };
 }
 
 pub fn internal_table_put(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if(args.len != 3) {
+    if (args.len != 3) {
         return error.InvalidArgCount;
     }
 
-    const table = switch(args[0].*) {
+    const table = switch (args[0].*) {
         .table => |*table| table,
         else => return error.TypeMismatch,
     };
 
     const key = args[1].*;
 
-    switch(key) {
+    switch (key) {
         // can't allow these as indices
         .list => return error.TypeMismatch,
         .table => return error.TypeMismatch,
@@ -572,11 +561,11 @@ pub fn internal_table_put(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime
 }
 
 pub fn internal_table_get(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if(args.len != 2) {
+    if (args.len != 2) {
         return error.InvalidArgCount;
     }
 
-    const table = switch(args[0].*) {
+    const table = switch (args[0].*) {
         .table => |table| table,
         else => return error.TypeMismatch,
     };
@@ -586,51 +575,51 @@ pub fn internal_table_get(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime
     return table.get(key);
 }
 
-// TODO prob one of these functions but for 
+// TODO prob one of these functions but for
 pub fn internal_table_has(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if(args.len != 2) {
+    if (args.len != 2) {
         return error.InvalidArgCount;
     }
 
-    return switch(args[0].*) {
-        .table => |table| model.Atom { .bool = table.contains(args[1].*) },
+    return switch (args[0].*) {
+        .table => |table| model.Atom{ .bool = table.contains(args[1].*) },
         else => error.TypeMismatch,
     };
 }
 
 // TODO allow exclusion of args list for methods that only take self.
 pub fn run_method(allocator: std.mem.Allocator, args: []*model.Atom, runtime: *Runtime) !?model.Atom {
-    if(args.len != 3) {
+    if (args.len != 3) {
         return error.InvalidArgCount;
     }
 
     // when did this pattern matching exist this is way easier
-    const table = switch(args[0].*) {
+    const table = switch (args[0].*) {
         .table => |table| table,
         else => return error.TypeMismatch,
     };
 
-    const methodName = switch(args[1].*) {
+    const methodName = switch (args[1].*) {
         .str => |str| str,
         else => return error.TypeMismatch,
     };
 
-    const realArgs = switch(args[2].*) {
+    const realArgs = switch (args[2].*) {
         .list => |*list| list,
         else => return error.TypeMismatch,
     };
 
-    const func = switch(table.get(args[1].*).?) {
+    const func = switch (table.get(args[1].*).?) {
         .function => |func| func,
         else => return error.CannotCallValue,
     };
-    
+
     var args2 = std.ArrayList(*model.Atom).init(allocator);
     defer args2.deinit();
 
     try args2.append(args[0]);
 
-    for(realArgs.items) |*arg| {
+    for (realArgs.items) |*arg| {
         try args2.append(arg);
     }
 

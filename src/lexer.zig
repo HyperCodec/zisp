@@ -33,11 +33,11 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             continue;
         }
 
-        if(code.startsWith("true")) {
+        if (code.startsWith("true")) {
             try code.removeRange(0, 4);
 
-            try tree.append(model.TokenTree {
-                .constant = model.Atom {
+            try tree.append(model.TokenTree{
+                .constant = model.Atom{
                     .bool = true,
                 },
             });
@@ -45,11 +45,11 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             continue;
         }
 
-        if(code.startsWith("false")) {
+        if (code.startsWith("false")) {
             try code.removeRange(0, 5);
 
-            try tree.append(model.TokenTree {
-                .constant = model.Atom {
+            try tree.append(model.TokenTree{
+                .constant = model.Atom{
                     .bool = false,
                 },
             });
@@ -155,9 +155,9 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             continue;
         }
 
-        if(code.charAt(0).?[0] == '[') {
+        if (code.charAt(0).?[0] == '[') {
             // match list literal
-            
+
             var i: usize = 1;
             var openListCount: usize = 0;
 
@@ -187,12 +187,12 @@ pub fn parse(haystack: []const u8, allocator: std.mem.Allocator) !std.ArrayList(
             const listContents = code.str()[1..i];
 
             const tokens = try parse(listContents, allocator);
-            try code.removeRange(0, i+1);
+            try code.removeRange(0, i + 1);
 
-            try tree.append(model.TokenTree {
+            try tree.append(model.TokenTree{
                 .list_init = tokens,
             });
-            
+
             continue;
         }
 
@@ -224,19 +224,19 @@ pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Alloc
             try indentation.concat("\t");
         }
 
-        if(depth == 0) {
+        if (depth == 0) {
             std.debug.print("begin tree\n", .{});
             try indentation.concat("\t");
         }
 
         switch (tree) {
             .constant => |atom| switch (atom) {
-                .bool => |boolean| std.debug.print("{s}Bool({})", .{indentation.str(), boolean}),
+                .bool => |boolean| std.debug.print("{s}Bool({})", .{ indentation.str(), boolean }),
                 .str => |str| std.debug.print("{s}Constant(\"{s}\")\n", .{ indentation.str(), str.str() }),
                 .int => |int| std.debug.print("{s}Constant({})\n", .{ indentation.str(), int }),
                 .list => {},
                 .table => {},
-                
+
                 // TODO deal with this
                 .function => {},
             },
@@ -245,7 +245,7 @@ pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Alloc
             .list_init => |list| {
                 std.debug.print("{s}List([\n", .{indentation.str()});
 
-                for(list.items) |item| {
+                for (list.items) |item| {
                     var ast2 = std.ArrayList(model.TokenTree).init(allocator);
                     defer ast2.deinit();
 
@@ -255,15 +255,15 @@ pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Alloc
                 }
 
                 std.debug.print("{s}])\n", .{indentation.str()});
-            }
+            },
         }
     }
 }
 
 pub fn deinit_ast(ast: *std.ArrayList(model.TokenTree)) void {
-    for(0..ast.items.len, ast.items) |_, *tree| {
-        switch(tree.*) {
-            .constant => |*constant| switch(constant.*) {
+    for (0..ast.items.len, ast.items) |_, *tree| {
+        switch (tree.*) {
+            .constant => |*constant| switch (constant.*) {
                 .str => |*str| str.deinit(),
                 else => continue, // other values aren't constants or dont need deinit
             },

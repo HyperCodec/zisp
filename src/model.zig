@@ -28,31 +28,31 @@ pub const TableContext = struct {
     }
 
     pub fn eql(self: Self, a: Atom, b: Atom) bool {
-        return switch(a) {
-            .bool => switch(b) {
+        return switch (a) {
+            .bool => switch (b) {
                 .int => a.bool == (b.int == 1),
                 .bool => a.bool == b.bool,
                 else => false,
             },
-            .int => switch(b) {
+            .int => switch (b) {
                 .int => a.int == b.int,
                 else => false,
             },
-            .str => switch(b) {
+            .str => switch (b) {
                 .str => std.mem.eql(u8, a.str.str(), b.str.str()),
                 else => false,
             },
-            .list => switch(b) {
+            .list => switch (b) {
                 .list => {
-                    if(a.list.items.len != b.list.items.len) {
+                    if (a.list.items.len != b.list.items.len) {
                         return false;
                     }
 
-                    for(0..a.list.items.len) |i| {
+                    for (0..a.list.items.len) |i| {
                         const a2 = a.list.items[i];
                         const b2 = b.list.items[i];
 
-                        if(!self.eql(a2, b2)) {
+                        if (!self.eql(a2, b2)) {
                             return false;
                         }
                     }
@@ -61,17 +61,17 @@ pub const TableContext = struct {
                 },
                 else => false,
             },
-            .table => switch(b) {
+            .table => switch (b) {
                 .table => {
                     const aIter = a.table.keyIterator();
 
-                    if(aIter.len != b.table.keyIterator().len) {
+                    if (aIter.len != b.table.keyIterator().len) {
                         return false;
                     }
 
-                    for(0..aIter.len, aIter.items) |_, key| {
-                        if(b.table.get(key)) |val| {
-                            if(!self.eql(val, a.table.get(key).?)) {
+                    for (0..aIter.len, aIter.items) |_, key| {
+                        if (b.table.get(key)) |val| {
+                            if (!self.eql(val, a.table.get(key).?)) {
                                 return false;
                             }
                         } else {
@@ -111,15 +111,7 @@ pub fn deinit_function_literal(literal: *FunctionLiteral) void {
 
 pub const Table = std.HashMap(Atom, Atom, TableContext, std.hash_map.default_max_load_percentage);
 
-pub const Atom = union(enum) {
-    int: i32,
-    str: String,
-    bool: bool,
-
-    list: std.ArrayList(Atom),
-    table: Table,
-    function: FunctionLiteral
-};
+pub const Atom = union(enum) { int: i32, str: String, bool: bool, list: std.ArrayList(Atom), table: Table, function: FunctionLiteral };
 
 pub const Error = error{
     TypeMismatch,
@@ -136,7 +128,7 @@ pub fn add(allocator: std.mem.Allocator, a: Atom, b: Atom) !Atom {
     return switch (a) {
         .int => switch (b) {
             .int => Atom{ .int = a.int + b.int },
-           else => error.TypeMismatch,
+            else => error.TypeMismatch,
         },
         .str => switch (b) {
             .int => {
