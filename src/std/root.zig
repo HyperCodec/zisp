@@ -1,7 +1,7 @@
 const Environment = @import("../eval.zig").Environment;
 const arithmetic = @import("arithmetic.zig");
 const io = @import("io.zig");
-const variable =  @import("variable.zig");
+const variable = @import("variable.zig");
 const list = @import("list.zig");
 const table = @import("table.zig");
 
