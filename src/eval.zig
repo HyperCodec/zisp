@@ -1,6 +1,7 @@
 const std = @import("std");
 const model = @import("model.zig");
 const String = @import("string").String;
+const internal_std = @import("std/root.zig");
 
 pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree), runtime: *Runtime) !?model.Atom {
     if (ast.items.len == 1) {
@@ -186,7 +187,7 @@ pub const Runtime = struct {
     }
 
     pub fn setup(self: *Self) !void {
-        try self.env.add_default_globals();
+        try internal_std.setup(&self.env);
         try self.env.enter_new_frame("__main__", self.allocator);
     }
 };
@@ -261,29 +262,6 @@ pub const Environment = struct {
         try self.current_stack_frame().locals.put(name, val);
     }
 
-    pub fn add_default_globals(self: *Self) !void {
-        try self.register_internal_function("+", internal_add);
-        try self.register_internal_function("-", internal_sub);
-        try self.register_internal_function("*", internal_mult);
-        try self.register_internal_function("/", internal_div);
-        try self.register_internal_function("%", internal_modulo);
-        try self.register_internal_function("print", internal_print);
-        try self.register_internal_function("println", internal_println);
-        try self.register_internal_function("input", internal_input);
-        try self.register_internal_function("global", global_assign);
-        try self.register_internal_function("var", local_assign);
-        try self.register_internal_function("iget", internal_list_get);
-        try self.register_internal_function("append", internal_list_append);
-        try self.register_internal_function("insert", internal_list_insert);
-        try self.register_internal_function("extend", internal_list_extend);
-        try self.register_internal_function("pop", internal_list_pop);
-        try self.register_internal_function("createTable", create_table);
-        try self.register_internal_function("put", internal_table_put);
-        try self.register_internal_function("kget", internal_table_get);
-        try self.register_internal_function("has", internal_table_has);
-        try self.register_internal_function("runMethod", run_method);
-    }
-
     pub fn register_internal_function(self: *Self, name: []const u8, function: *const fn (allocator: std.mem.Allocator, args: []*model.Atom, runtime: *Runtime) anyerror!?model.Atom) !void {
         return self.add_global(name, model.Atom{
             .function = model.FunctionLiteral{
@@ -306,46 +284,6 @@ pub const StackFrame = struct {
         self.* = undefined;
     }
 };
-
-pub fn internal_add(allocator: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if (args.len != 2) {
-        return error.InvalidArgCount;
-    }
-
-    return try model.add(allocator, args[0].*, args[1].*);
-}
-
-pub fn internal_sub(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if (args.len != 2) {
-        return error.InvalidArgCount;
-    }
-
-    return try model.sub(args[0].*, args[1].*);
-}
-
-pub fn internal_mult(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if (args.len != 2) {
-        return error.InvalidArgCount;
-    }
-
-    return try model.mult(args[0].*, args[1].*);
-}
-
-pub fn internal_div(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if (args.len != 2) {
-        return error.InvalidArgCount;
-    }
-
-    return try model.div(args[0].*, args[1].*);
-}
-
-pub fn internal_modulo(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
-    if (args.len != 2) {
-        return error.InvalidArgCount;
-    }
-
-    return try model.modulo(args[0].*, args[1].*);
-}
 
 pub fn internal_print(_: std.mem.Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
     if (args.len != 1) {
