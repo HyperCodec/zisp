@@ -231,10 +231,14 @@ pub fn display_ast(ast: std.ArrayList(model.TokenTree), allocator: std.mem.Alloc
 
         switch (tree) {
             .constant => |atom| switch (atom) {
+                .bool => |boolean| std.debug.print("{s}Bool({})", .{indentation.str(), boolean}),
                 .str => |str| std.debug.print("{s}Constant(\"{s}\")\n", .{ indentation.str(), str.str() }),
                 .int => |int| std.debug.print("{s}Constant({})\n", .{ indentation.str(), int }),
                 .list => {},
                 .table => {},
+                
+                // TODO deal with this
+                .function => {},
             },
             .ident => |ident| std.debug.print("{s}Ident({s})\n", .{ indentation.str(), ident.str() }),
             .context => |context| try display_ast(context, allocator, depth + 1),

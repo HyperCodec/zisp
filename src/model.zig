@@ -18,8 +18,10 @@ pub const TableContext = struct {
         switch (key) {
             .int => |*int| h.update(std.mem.asBytes(int)),
             .str => |str| h.update(str.str()),
+            .bool => |*boolean| h.update(std.mem.asBytes(boolean)),
             .list => std.debug.panic("Cannot hash list", .{}),
             .table => std.debug.panic("Cannot hash table", .{}),
+            .function => std.debug.panic("Cannot hash function", .{}),
         }
 
         return h.final();
@@ -27,6 +29,11 @@ pub const TableContext = struct {
 
     pub fn eql(self: Self, a: Atom, b: Atom) bool {
         return switch(a) {
+            .bool => switch(b) {
+                .int => a.bool == (b.int == 1),
+                .bool => a.bool == b.bool,
+                else => false,
+            },
             .int => switch(b) {
                 .int => a.int == b.int,
                 else => false,
@@ -76,9 +83,31 @@ pub const TableContext = struct {
                 },
                 else => false,
             },
+            .function => std.debug.panic("Can't compare functions", .{}),
         };
     }
 };
+
+pub const FunctionLiteral = union(enum) {
+    const eval = @import("eval.zig");
+
+    internal: *const fn (allocator: std.mem.Allocator, args: []*Atom, runtime: *eval.Runtime) anyerror!?Atom,
+    defined: DefinedFunction,
+};
+
+pub const DefinedFunction = struct {
+    parameters: std.ArrayList(String),
+    body: std.ArrayList(TokenTree),
+};
+
+pub fn deinit_function_literal(literal: *FunctionLiteral) void {
+    switch (literal.*) {
+        .defined => |defined| defined.deinit(),
+        .internal => {},
+    }
+
+    literal.* = undefined;
+}
 
 pub const Table = std.HashMap(Atom, Atom, TableContext, std.hash_map.default_max_load_percentage);
 
@@ -89,7 +118,7 @@ pub const Atom = union(enum) {
 
     list: std.ArrayList(Atom),
     table: Table,
-    //function: FunctionLiteral
+    function: FunctionLiteral
 };
 
 pub const Error = error{

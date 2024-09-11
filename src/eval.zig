@@ -56,13 +56,13 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
                                 }
                             }
 
-                            const defined = DefinedFunction {
+                            const defined = model.DefinedFunction {
                                 .parameters = parametersFull,
                                 .body = body,
                             };
 
-                            try runtime.env.add_global(functionName.str(), GlobalValue {
-                                .function = FunctionLiteral {
+                            try runtime.env.add_global(functionName.str(), model.Atom {
+                                .function = model.FunctionLiteral {
                                     .defined = defined
                                 }
                             });
@@ -160,7 +160,6 @@ pub const Runtime = struct {
         }
 
         return switch (val.?) {
-            .atom => error.CannotCallValue,
             .function => |func| switch (func) {
                 // TODO inject args into defined
                 .defined => |defined| {
@@ -182,6 +181,7 @@ pub const Runtime = struct {
                 },
                 .internal => |internal| internal(allocator, args, self),
             },
+            else => error.CannotCallValue,
         };
     }
 
@@ -194,12 +194,12 @@ pub const Runtime = struct {
 pub const Environment = struct {
     const Self = @This();
 
-    globals: std.StringHashMap(GlobalValue),
+    globals: std.StringHashMap(model.Atom),
     stack: std.ArrayList(StackFrame),
 
     pub fn init(allocator: std.mem.Allocator) Self {
         return Self{
-            .globals = std.StringHashMap(GlobalValue).init(allocator),
+            .globals = std.StringHashMap(model.Atom).init(allocator),
             .stack = std.ArrayList(StackFrame).init(allocator),
         };
     }
@@ -218,7 +218,7 @@ pub const Environment = struct {
         self.* = undefined;
     }
 
-    pub fn add_global(self: *Self, name: []const u8, val: GlobalValue) !void {
+    pub fn add_global(self: *Self, name: []const u8, val: model.Atom) !void {
         try self.globals.put(name, val);
     }
 
@@ -248,10 +248,7 @@ pub const Environment = struct {
 
     pub fn fetch_variable(self: *Self, ident: []const u8) !?*model.Atom {
         if(self.globals.getPtr(ident)) |val| {
-            return switch(val.*) {
-                .atom => |*atom| atom,
-                .function => error.TypeMismatch,
-            };
+            return val;
         }
 
         for(self.stack.items) |frame| {
@@ -294,38 +291,13 @@ pub const Environment = struct {
         name: []const u8,
         function: *const fn(allocator: std.mem.Allocator, args: []*model.Atom, runtime: *Runtime) anyerror!?model.Atom
     ) !void {
-            return self.add_global(name, GlobalValue {
-                .function = FunctionLiteral {
+            return self.add_global(name, model.Atom {
+                .function = model.FunctionLiteral {
                     .internal = function,
                 },
             });
     }
 };
-
-// TODO maybe just merge function literal into atom.
-pub const GlobalValue = union(enum) {
-    atom: model.Atom,
-    function: FunctionLiteral,
-};
-
-pub const FunctionLiteral = union(enum) {
-    internal: *const fn (allocator: std.mem.Allocator, args: []*model.Atom, runtime: *Runtime) anyerror!?model.Atom,
-    defined: DefinedFunction,
-};
-
-pub const DefinedFunction = struct {
-    parameters: std.ArrayList(String),
-    body: std.ArrayList(model.TokenTree),
-};
-
-pub fn deinit_function_literal(literal: *FunctionLiteral) void {
-    switch (literal.*) {
-        .defined => |defined| defined.deinit(),
-        .internal => {},
-    }
-
-    literal.* = undefined;
-}
 
 pub const StackFrame = struct {
     const Self = @This();
@@ -442,7 +414,7 @@ pub fn global_assign(_: std.mem.Allocator, args: []*model.Atom, runtime: *Runtim
     }
 
     switch (args[0].*) {
-        .str => |arg1| try runtime.env.add_global(arg1.str(), GlobalValue{ .atom = args[1].* }),
+        .str => |arg1| try runtime.env.add_global(arg1.str(), args[1].*),
         else => return error.TypeMismatch,
     }
 
