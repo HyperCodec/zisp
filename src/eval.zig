@@ -54,7 +54,7 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
                         try tree3.append(code);
 
                         return try evaluate(allocator, tree3, runtime);
-                    } else {
+                    } else if(ast.items.len == 4) {
                         const code = ast.items[3];
                         var tree3 = std.ArrayList(model.TokenTree).init(allocator);
                         defer tree3.deinit();
