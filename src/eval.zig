@@ -37,31 +37,30 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
         .ident => |ident| {
             if (std.mem.eql(u8, ident.str(), "if")) {
                 // if cond (true) (false)
-                const cond = ast.items[1];
-                var tree2 = std.ArrayList(model.TokenTree).init(allocator);
-                defer tree2.deinit();
+                const cond = switch(ast.items[1]) {
+                    .context => |context| context,
+                    else => return error.CannotCallValue,
+                };
 
-                try tree2.append(cond);
-                
-                const condValue = (try evaluate(allocator, tree2, runtime)).?;
+                const condValue = (try evaluate(allocator, cond, runtime)).?;
 
                 return switch(condValue) {
                     .bool => |b| if(b) {
-                        const code = ast.items[2];
-                        var tree3 = std.ArrayList(model.TokenTree).init(allocator);
-                        defer tree3.deinit();
-                        
-                        try tree3.append(code);
+                        const code = switch(ast.items[2]) {
+                            .context => |context| context,
+                            else => return error.CannotCallValue,
+                        };
 
-                        return try evaluate(allocator, tree3, runtime);
+                        return evaluate(allocator, code, runtime);
                     } else if(ast.items.len == 4) {
-                        const code = ast.items[3];
-                        var tree3 = std.ArrayList(model.TokenTree).init(allocator);
-                        defer tree3.deinit();
+                        const code = switch(ast.items[3]) {
+                            .context => |context| context,
+                            else => return error.CannotCallValue,
+                        };
 
-                        try tree3.append(code);
-
-                        return try evaluate(allocator, tree3, runtime);
+                        return evaluate(allocator, code, runtime);
+                    } else {
+                        return null;
                     },
                     else => error.TypeMismatch,
                 };

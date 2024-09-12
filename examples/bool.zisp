@@ -1,2 +1,3 @@
-(println true)
-(println false)
+(var "entering" true)
+
+(if (eq "a" "b") (println "hi") (println "bye"))
