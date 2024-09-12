@@ -245,14 +245,17 @@ pub const Environment = struct {
     }
 
     pub fn fetch_variable(self: *Self, ident: []const u8) !?*model.Atom {
-        if (self.globals.getPtr(ident)) |val| {
-            return val;
-        }
-
-        for (self.stack.items) |frame| {
+        // TODO this stupid while loop requires 2 casts to deal with.
+        var i = @as(i65, self.stack.items.len-1);
+        while (i >= 0) : (i -= 1) {
+            var frame = self.stack.items[@intCast(i)];
             if (frame.locals.getPtr(ident)) |val| {
                 return val;
             }
+        }
+
+        if (self.globals.getPtr(ident)) |val| {
+            return val;
         }
 
         return null;
