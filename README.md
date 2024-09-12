@@ -101,3 +101,8 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `put table key val` - Puts a value in the table at a specified key.
 - `kget table key` - Returns the value in a table with a specified key.
 - `runMethod table key args` - Gets and runs a method in a table, passing the table as the first argument. `args` is a list.
+- `eq arg1 arg2 ...` - Returns true if all args are equal, false otherwise.
+- `neq arg1 arg2 ...` - Opposite of eq.
+- `not arg` - Reverses a boolean value.
+- `or arg1 arg2 ...` - Returns true if any of the args are true, false otherwise.
+- `and arg1 arg2 ...` - Returns true if all of the args are true, false otherwise.
