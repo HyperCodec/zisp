@@ -35,6 +35,23 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
 
     return switch (ast.items[0]) {
         .ident => |ident| {
+            if(std.mem.eql(u8, ident.str(), "return")) {
+                if(ast.items.len == 2) {
+                    return switch(ast.items[1]) {
+                        .constant => |constant| constant,
+                        .context => |context| evaluate(allocator, context, runtime),
+                        .ident => |ident2| (try runtime.env.fetch_variable(ident2.str())).?.*,
+                        .list_init => {
+                            var list = std.ArrayList(model.TokenTree).init(allocator);
+                            defer list.deinit();
+                            try list.append(ast.items[1]);
+
+                            return evaluate(allocator, list, runtime);
+                        },
+                    };
+                }
+            }
+
             if (std.mem.eql(u8, ident.str(), "if")) {
                 // if cond (true) (false)
                 const cond = switch (ast.items[1]) {
