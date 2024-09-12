@@ -1,2 +1,1 @@
-(println true)
-(println false)
+(if (eq "a" "b") (println "hi") (println "bye"))
