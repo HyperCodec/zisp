@@ -262,6 +262,17 @@ pub const Environment = struct {
     }
 
     pub fn add_local(self: *Self, name: []const u8, val: model.Atom) !void {
+        // TODO same issue with `fetch_variable` about the things being casted.
+        var i = @as(i65, self.stack.items.len-1);
+
+        while(i >= 0) : (i -= 1) {
+            var frame = self.stack.items[@intCast(i)];
+            if(frame.locals.contains(name)) {
+                try frame.locals.put(name, val);
+                return;
+            }
+        }
+
         try self.current_stack_frame().locals.put(name, val);
     }
 
