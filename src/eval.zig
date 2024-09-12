@@ -37,23 +37,23 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
         .ident => |ident| {
             if (std.mem.eql(u8, ident.str(), "if")) {
                 // if cond (true) (false)
-                const cond = switch(ast.items[1]) {
+                const cond = switch (ast.items[1]) {
                     .context => |context| context,
                     else => return error.CannotCallValue,
                 };
 
                 const condValue = (try evaluate(allocator, cond, runtime)).?;
 
-                return switch(condValue) {
-                    .bool => |b| if(b) {
-                        const code = switch(ast.items[2]) {
+                return switch (condValue) {
+                    .bool => |b| if (b) {
+                        const code = switch (ast.items[2]) {
                             .context => |context| context,
                             else => return error.CannotCallValue,
                         };
 
                         return evaluate(allocator, code, runtime);
-                    } else if(ast.items.len == 4) {
-                        const code = switch(ast.items[3]) {
+                    } else if (ast.items.len == 4) {
+                        const code = switch (ast.items[3]) {
                             .context => |context| context,
                             else => return error.CannotCallValue,
                         };
@@ -277,7 +277,7 @@ pub const Environment = struct {
 
     pub fn fetch_variable(self: *Self, ident: []const u8) !?*model.Atom {
         // TODO this stupid while loop requires 2 casts to deal with.
-        var i = @as(i65, self.stack.items.len-1);
+        var i = @as(i65, self.stack.items.len - 1);
         while (i >= 0) : (i -= 1) {
             var frame = self.stack.items[@intCast(i)];
             if (frame.locals.getPtr(ident)) |val| {
@@ -294,11 +294,11 @@ pub const Environment = struct {
 
     pub fn add_local(self: *Self, name: []const u8, val: model.Atom) !void {
         // TODO same issue with `fetch_variable` about the things being casted.
-        var i = @as(i65, self.stack.items.len-1);
+        var i = @as(i65, self.stack.items.len - 1);
 
-        while(i >= 0) : (i -= 1) {
+        while (i >= 0) : (i -= 1) {
             var frame = self.stack.items[@intCast(i)];
-            if(frame.locals.contains(name)) {
+            if (frame.locals.contains(name)) {
                 try frame.locals.put(name, val);
                 return;
             }
