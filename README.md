@@ -10,6 +10,17 @@ A simple lisp implemented in zig. (my first zig project :D)
 
 ## Syntax
 
+### If statements
+The syntax for if statements is the following:
+```
+if (condition) (body)
+```
+
+Additionally, you can supply an else case:
+```
+if (condition) (body1) (body2)
+```
+
 ### Calling a function
 You can call a function by running `functionName arg1 arg2 ...`
 
