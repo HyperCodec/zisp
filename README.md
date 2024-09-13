@@ -106,3 +106,7 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `not arg` - Reverses a boolean value.
 - `or arg1 arg2 ...` - Returns true if any of the args are true, false otherwise.
 - `and arg1 arg2 ...` - Returns true if all of the args are true, false otherwise.
+- `< arg1 arg2` - returns whether the first value is less than the second.
+- `<= arg1 arg2` - returns whether the first value is less than or equal to the second.
+- `> arg1 arg2` - returns whether the first value is greater than the second.
+- `>= arg1 arg2` - returns whether the first value is greater than or equal to the second.

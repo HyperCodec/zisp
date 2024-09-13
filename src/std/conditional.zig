@@ -11,6 +11,10 @@ pub fn setup(env: *eval.Environment) !void {
     try env.register_internal_function("not", internal_not);
     try env.register_internal_function("or", internal_or);
     try env.register_internal_function("and", internal_and);
+    try env.register_internal_function("<", internal_lessthan);
+    try env.register_internal_function("<=", internal_lessthaneq);
+    try env.register_internal_function(">", internal_greaterthan);
+    try env.register_internal_function(">=", internal_greaterthaneq);
 }
 
 pub fn internal_eq(_: Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
@@ -76,4 +80,60 @@ pub fn internal_and(_: Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom
     }
 
     return model.Atom{ .bool = true };
+}
+
+pub fn internal_lessthan(_: Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
+    if(args.len != 2) {
+        return error.InvalidArgCount;
+    }
+
+    return switch(args[0].*) {
+        .int => |a| switch(args[1].*) {
+            .int => |b| model.Atom { .bool = a < b },
+            else => error.TypeMismatch,
+        },
+        else => error.TypeMismatch,
+    };
+}
+
+pub fn internal_lessthaneq(_: Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
+    if(args.len != 2) {
+        return error.InvalidArgCount;
+    }
+
+    return switch(args[0].*) {
+        .int => |a| switch(args[1].*) {
+            .int => |b| model.Atom { .bool = a <= b },
+            else => error.TypeMismatch,
+        },
+        else => error.TypeMismatch,
+    };
+}
+
+pub fn internal_greaterthan(_: Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
+    if(args.len != 2) {
+        return error.InvalidArgCount;
+    }
+
+    return switch (args[0].*) {
+        .int => |a| switch (args[1].*) {
+            .int => |b| model.Atom { .bool = a > b },
+            else => error.TypeMismatch,
+        },
+        else => error.TypeMismatch,
+    };
+}
+
+pub fn internal_greaterthaneq(_: Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
+    if(args.len != 2) {
+        return error.InvalidArgCount;
+    }
+
+    return switch (args[0].*) {
+        .int => |a| switch(args[1].*) {
+            .int => |b| model.Atom { .bool = a >= b },
+            else => error.TypeMismatch,
+        },
+        else => error.TypeMismatch,
+    };
 }
