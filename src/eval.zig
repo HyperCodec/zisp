@@ -4,11 +4,23 @@ const String = @import("string").String;
 const internal_std = @import("std/root.zig");
 
 pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree), runtime: *Runtime) !?model.Atom {
+    if(runtime.env.has_returned()) {
+        return runtime.env.get_current_return();
+    }
+    
     if (ast.items.len == 1) {
         return switch (ast.items[0]) {
             .constant => |constant| constant,
             .context => |context| evaluate(allocator, context, runtime),
-            .ident => |ident| runtime.run_function(allocator, ident.str(), &[_]*model.Atom{}),
+            .ident => |ident| {
+                if(std.mem.eql(u8, ident.str(), "return")) {
+                    // no-value return
+                    runtime.env.return_current(null);
+                    return null;
+                }
+
+                return runtime.run_function(allocator, ident.str(), &[_]*model.Atom{});
+            },
             .list_init => |items| {
                 var contents = std.ArrayList(model.Atom).init(allocator);
 
@@ -38,15 +50,29 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
             if(std.mem.eql(u8, ident.str(), "return")) {
                 if(ast.items.len == 2) {
                     return switch(ast.items[1]) {
-                        .constant => |constant| constant,
-                        .context => |context| evaluate(allocator, context, runtime),
-                        .ident => |ident2| (try runtime.env.fetch_variable(ident2.str())).?.*,
+                        .constant => |constant| {
+                            runtime.env.return_current(constant);
+                            return constant;
+                        },
+                        .context => |context| {
+                            const atom = try evaluate(allocator, context, runtime);
+                            runtime.env.return_current(atom);
+                            return atom;
+                        },
+                        .ident => |ident2| {
+                            const atom = (try runtime.env.fetch_variable(ident2.str())).?.*;
+                            runtime.env.return_current(atom);
+                            return atom;
+                        },
                         .list_init => {
                             var list = std.ArrayList(model.TokenTree).init(allocator);
                             defer list.deinit();
                             try list.append(ast.items[1]);
 
-                            return evaluate(allocator, list, runtime);
+                            const list2 = try evaluate(allocator, list, runtime);
+                            runtime.env.return_current(list2);
+
+                            return list2;
                         },
                     };
                 }
@@ -132,6 +158,7 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
 
                     // TODO evaluation could be null, need an actual error handling
                     .context => |context| {
+                        // runtime.env.print_stacktrace();
                         var result = (try evaluate(allocator, context, runtime)).?;
 
                         try args.append(&result);
@@ -161,6 +188,10 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
             _ = try evaluate(allocator, context, runtime);
 
             for (ast.items[1..]) |tree| {
+                if(runtime.env.has_returned()) {
+                    return runtime.env.get_current_return();
+                }
+
                 switch (tree) {
                     .context => |context2| _ = try evaluate(allocator, context2, runtime),
                     .constant => return error.CannotCallValue,
@@ -173,7 +204,7 @@ pub fn evaluate(allocator: std.mem.Allocator, ast: std.ArrayList(model.TokenTree
                 }
             }
 
-            return null;
+            return runtime.env.get_current_return();
         },
         .list_init => return error.CannotCallValue,
     };
@@ -225,6 +256,7 @@ pub const Runtime = struct {
         const val = try self.env.fetch_variable(ident);
 
         if (val == null) {
+            std.debug.print("Identifier: {s}\n", .{ident});
             return error.IdentDoesNotExist;
         }
 
@@ -276,7 +308,7 @@ pub const Environment = struct {
     }
 
     pub fn enter_new_frame(self: *Self, functionName: []const u8, allocator: std.mem.Allocator) !void {
-        try self.stack.append(StackFrame{ .name = functionName, .locals = std.StringHashMap(model.Atom).init(allocator) });
+        try self.stack.append(StackFrame{ .name = functionName, .locals = std.StringHashMap(model.Atom).init(allocator), .return_value = null, .has_returned = false });
     }
 
     pub fn exit_frame(self: *Self) void {
@@ -331,6 +363,20 @@ pub const Environment = struct {
             },
         });
     }
+
+    pub fn return_current(self: *Self, val: ?model.Atom) void {
+        var frame = self.current_stack_frame();
+        frame.return_value = val;
+        frame.has_returned = true;
+    }
+
+    pub fn get_current_return(self: *Self) ?model.Atom {
+        return self.current_stack_frame().return_value;
+    }
+
+    pub fn has_returned(self: *Self) bool {
+        return self.current_stack_frame().has_returned;
+    }
 };
 
 pub const StackFrame = struct {
@@ -338,6 +384,8 @@ pub const StackFrame = struct {
 
     locals: std.StringHashMap(model.Atom),
     name: []const u8,
+    return_value: ?model.Atom,
+    has_returned: bool,
 
     pub fn deinit(self: *Self) void {
         //self.name.deinit();

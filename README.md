@@ -109,4 +109,4 @@ Comments can be added with `//`. When a comment character is reached, the interp
 - `< arg1 arg2` - returns whether the first value is less than the second.
 - `<= arg1 arg2` - returns whether the first value is less than or equal to the second.
 - `> arg1 arg2` - returns whether the first value is greater than the second.
-- `>= arg1 arg2` - returns whether the firs tvalue is greater than or equal to the second.
+- `>= arg1 arg2` - returns whether the first value is greater than or equal to the second.

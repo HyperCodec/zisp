@@ -1,21 +1,17 @@
-// not doable yet with current std
 (var "cache" (createTable))
 (def fibonacci (n) (
     (if (<= n 1) (
-        (print "n: ")
-        (println n)
-        (return n)
-    ) (
-        (if (has cache n) (
-            return (kget cache n)
-        ) (
-            (var "v" (- (fibonacci (- n 1)) (fibonacci (- n 2))))
-
-            (put cache n v)
-
-            (return v)
-        ))
+        return n
     ))
+
+    (if (has cache n) (
+        return (kget cache n)
+    ))
+
+    (var "v" (+ (fibonacci (- n 1)) (fibonacci (- n 2))))
+    (put cache n v)
+
+    (return v)
 ))
 
 (def fibSeq (depth) (
