@@ -9,6 +9,7 @@ pub fn setup(env: *eval.Environment) !void {
     try env.register_internal_function("print", internal_print);
     try env.register_internal_function("println", internal_println);
     try env.register_internal_function("input", internal_input);
+    try env.register_internal_function("printStacktrace", internal_print_stacktrace);
 }
 
 pub fn internal_print(_: Allocator, args: []*model.Atom, _: *Runtime) !?model.Atom {
@@ -65,4 +66,13 @@ pub fn internal_input(allocator: Allocator, args: []*model.Atom, _: *Runtime) !?
     }
 
     return error.InternalFunctionError;
+}
+
+pub fn internal_print_stacktrace(_: Allocator, args: []*model.Atom, runtime: *Runtime) !?model.Atom {
+    if (args.len != 0) {
+        return error.InvalidArgCount;
+    }
+    
+    runtime.env.print_stacktrace();
+    return null;
 }

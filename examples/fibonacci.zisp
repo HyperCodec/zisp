@@ -1,17 +1,7 @@
-(var "cache" (createTable))
 (def fibonacci (n) (
-    (if (<= n 1) (
-        return n
-    ))
+    (if (<= n 1) (return n))
 
-    (if (has cache n) (
-        return (kget cache n)
-    ))
-
-    (var "v" (+ (fibonacci (- n 1)) (fibonacci (- n 2))))
-    (put cache n v)
-
-    (return v)
+    (return (+ (fibonacci (- n 1)) (fibonacci (- n 2))))
 ))
 
 (def fibSeq (depth) (
